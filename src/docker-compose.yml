@@ -1,0 +1,29 @@
+services:
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - product-service
+      - user-service
+    networks:
+      - internal
+
+  product-service:
+    build: ./services/Product_Service
+    expose:
+      - "3001"
+    networks:
+      - internal
+
+  user-service:
+    build: ./services/User_Service
+    expose:
+      - "3002"
+    networks:
+      - internal
+
+
+networks:
+  internal:
+    driver: bridge
