@@ -15,8 +15,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve index.html for root
 app.get('/', (req, res) => {
-    const num = Math.floor(Math.random() * 100) + 1;
-    res.render('home.ejs', { rand: num });
+    const username = "User #" + Math.floor(Math.random() * 100) + 1;
+    res.render('home.ejs', { username });
 });
 
 // Start server
