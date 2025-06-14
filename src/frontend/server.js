@@ -1,14 +1,22 @@
 // server.js
-const express = require('express');
-const path = require('path');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // Serve static files from /public
-app.use(express.static(path.join(__dirname, 'public/static')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve index.html for root
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/pages', 'index.html'));
+    const num = Math.floor(Math.random() * 100) + 1;
+    res.render('home.ejs', { rand: num });
 });
 
 // Start server

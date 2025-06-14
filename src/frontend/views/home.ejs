@@ -1,0 +1,16 @@
+<%- include('boilerplates/header') %>
+<h1>Hello, welcome to the home page</h1>
+<p> <%= "Hello World".toUpperCase() %>!!!!</p>
+<p> Data passer check: <%= rand %></p>
+<% if (rand%2 ===0){ %>
+<p>Even number!</p>
+<% } else { %>
+<p>Odd number!</p>
+<% } %>
+<p><%= rand%2 ===0? 'Even' : 'Odd' %></p>
+<ul class="list-group">
+    <% for (let i = 1; i <= 10; i++) { %>
+    <li class="list-group-item">Number: <%= i %></li>
+    <% } %>
+</ul>
+<%- include('boilerplates/footer') %>
