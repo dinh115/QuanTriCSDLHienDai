@@ -26,6 +26,23 @@ class ReviewController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+  static async addReplyToReview(req, res) {
+    try {
+      const { productId, userId } = req.params;
+      const { reply_content } = req.body;
+
+      const result = await ReviewModel.addReplyToReview(productId, userId, reply_content);
+      
+      if (result.success) {
+        res.json({ message: 'Reply added successfully' });
+      } else {
+        res.status(404).json({ error: 'Review not found' });
+      }
+    } catch (error) {
+      console.error('Error adding reply:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }
 
 module.exports = ReviewController;

@@ -12,37 +12,6 @@ class ReviewModel {
     }
   }
 
-  // static async createReview(reviewData) {
-  //   const query = `
-  //     INSERT INTO product_reviews (
-  //       masp, mauser, username, rating, review_date,
-  //       phanloai, chatluong, mota_dung, noidung,
-  //       images, has_images
-  //     )
-  //     VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?, ?)
-  //   `;
-
-  //   const params = [
-  //     reviewData.masp,
-  //     reviewData.mauser, 
-  //     reviewData.username,
-  //     reviewData.rating,
-  //     reviewData.phanloai,
-  //     reviewData.chatluong,
-  //     reviewData.mota_dung,
-  //     reviewData.noidung,
-  //     reviewData.images || [],
-  //     reviewData.images ? true : false
-  //   ];
-
-  //   try {
-  //     const result = await client.execute(query, params, { prepare: true });
-  //     return { success: true };
-  //   } catch (error) {
-  //     console.error('Database error:', error);
-  //     throw error;
-  //   }
-  // }
   static async createReview(reviewData) {
     const hasImages = reviewData.images && reviewData.images.length > 0;
     
@@ -98,6 +67,21 @@ class ReviewModel {
     try {
       const result = await client.execute(query, params, { prepare: true });
       return { success: true };
+    } catch (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+  }
+  static async addReplyToReview(productId, userId, replyContent) {
+    const query = `
+      UPDATE product_reviews
+      SET reply_content = ?, reply_date = toTimestamp(now())
+      WHERE masp = ? AND mauser = ?
+    `;
+    
+    try {
+      const result = await client.execute(query, [replyContent, productId, userId], { prepare: true });
+      return { success: result.wasApplied() };
     } catch (error) {
       console.error('Database error:', error);
       throw error;
