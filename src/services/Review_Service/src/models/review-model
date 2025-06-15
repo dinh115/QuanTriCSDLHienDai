@@ -1,0 +1,16 @@
+const client = require('../config/database');
+
+class ReviewModel {
+  static async getReviewsByProductId(productId) {
+    const query = 'SELECT * FROM product_reviews WHERE masp = ?';
+    try {
+      const result = await client.execute(query, [productId], { prepare: true });
+      return result.rows;
+    } catch (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+  }
+}
+
+module.exports = ReviewModel;

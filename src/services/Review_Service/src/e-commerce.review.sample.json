@@ -1,0 +1,60 @@
+[{
+  "_id": {
+    "$oid": "684af7698f60ecc151354d2c"
+  },
+  "masp": "684ad7368f60ecc151354d24",
+  "mauser": "6849a57d0a19543941aa3598",
+  "username": "ndai123",
+  "sao": 5,
+  "ngay": {
+    "$date": "2025-05-10T13:25:00.000Z"
+  },
+  "khungdg": {
+    "phanloai": "43 - Đen",
+    "chatluong": "xuất sắc",
+    "mota_dung": "Chính xác"
+  },
+  "noidung": "Giày mang lên form đẹp...",
+  "hinhanh": [
+    "https://down-mx.img.susercontent.com/file/sg-11134201-23020-xijaiue07env92_tn",
+    "https://down-mx.img.susercontent.com/file/sg-11134201-23020-ebdkfbf07envd6_tn"
+  ],
+  "traloi": "Shop: Cảm ơn"
+},
+{
+  "_id": {
+    "$oid": "684af8848f60ecc151354d2d"
+  },
+  "masp": "684ad7d68f60ecc151354d25",
+  "mauser": "6849a57d0a19543941aa3598",
+  "username": "ndai123",
+  "sao": 4,
+  "ngay": {
+    "$date": "2025-05-10T13:25:00.000Z"
+  },
+  "khungdg": {
+    "chatluong": "xuất sắc",
+    "mota_dung": "Chính xác"
+  },
+  "noidung": "Bé nhà mình rất thích loại sữa này. Giao hàng nhanh chóng, đóng gói chắc chắn."
+},
+{
+  "_id": {
+    "$oid": "684c4140fdc6351f84f08013"
+  },
+  "masp": "684ad7368f60ecc151354d24",
+  "mauser": "684b003e8f60ecc151354d30",
+  "username": "qdinh123",
+  "sao": 5,
+  "ngay": {
+    "$date": "2025-06-13T15:18:24.263Z"
+  },
+  "khungdg": {
+    "phanloai": "42 - Trắng",
+    "chatluong": "tốt",
+    "mota_dung": "Chính xác"
+  },
+  "noidung": "Sản phẩm rất tốt",
+  "hinhanh": [],
+  "traloi": null
+}]
