@@ -11,6 +11,98 @@ class ReviewModel {
       throw error;
     }
   }
+
+  // static async createReview(reviewData) {
+  //   const query = `
+  //     INSERT INTO product_reviews (
+  //       masp, mauser, username, rating, review_date,
+  //       phanloai, chatluong, mota_dung, noidung,
+  //       images, has_images
+  //     )
+  //     VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?, ?)
+  //   `;
+
+  //   const params = [
+  //     reviewData.masp,
+  //     reviewData.mauser, 
+  //     reviewData.username,
+  //     reviewData.rating,
+  //     reviewData.phanloai,
+  //     reviewData.chatluong,
+  //     reviewData.mota_dung,
+  //     reviewData.noidung,
+  //     reviewData.images || [],
+  //     reviewData.images ? true : false
+  //   ];
+
+  //   try {
+  //     const result = await client.execute(query, params, { prepare: true });
+  //     return { success: true };
+  //   } catch (error) {
+  //     console.error('Database error:', error);
+  //     throw error;
+  //   }
+  // }
+  static async createReview(reviewData) {
+    const hasImages = reviewData.images && reviewData.images.length > 0;
+    
+    let query, params;
+    
+    if (hasImages) {
+      // Include images field when images exist
+      query = `
+        INSERT INTO product_reviews (
+          masp, mauser, username, rating, review_date,
+          phanloai, chatluong, mota_dung, noidung,
+          images, has_images
+        )
+        VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?, ?)
+      `;
+      
+      params = [
+        reviewData.masp,
+        reviewData.mauser, 
+        reviewData.username,
+        reviewData.rating,
+        reviewData.phanloai,
+        reviewData.chatluong,
+        reviewData.mota_dung,
+        reviewData.noidung,
+        reviewData.images,
+        true
+      ];
+    } else {
+      // Exclude images field when no images
+      query = `
+        INSERT INTO product_reviews (
+          masp, mauser, username, rating, review_date,
+          phanloai, chatluong, mota_dung, noidung,
+          has_images
+        )
+        VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?)
+      `;
+      
+      params = [
+        reviewData.masp,
+        reviewData.mauser, 
+        reviewData.username,
+        reviewData.rating,
+        reviewData.phanloai,
+        reviewData.chatluong,
+        reviewData.mota_dung,
+        reviewData.noidung,
+        false
+      ];
+    }
+
+    try {
+      const result = await client.execute(query, params, { prepare: true });
+      return { success: true };
+    } catch (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = ReviewModel;

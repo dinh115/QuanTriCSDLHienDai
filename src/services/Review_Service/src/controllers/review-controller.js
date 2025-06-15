@@ -11,6 +11,21 @@ class ReviewController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+  static async createReview(req, res) {
+    try {
+      // Ensure productId is taken from the URL params
+      const { productId } = req.params;
+      const reviewData = {
+        ...req.body,
+        masp: productId  // Override or set the productId from URL params
+      };
+      const result = await ReviewModel.createReview(reviewData);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error creating review:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }
 
 module.exports = ReviewController;

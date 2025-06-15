@@ -1,1 +1,26 @@
-http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews
+cd src/services/Review_Service/src
+npm start
+GET http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews
+
+POST http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews
+Case: have image
+{
+  "mauser": "user_id",
+  "username": "username",
+  "rating": 5,
+  "phanloai": "category",
+  "chatluong": "quality",
+  "mota_dung": "description",
+  "noidung": "review content",
+  "images": ["image_url1", "image_url2"]
+}
+Case: does not have image
+{
+  "mauser": "user_id",
+  "username": "username",
+  "rating": 5,
+  "phanloai": "category",
+  "chatluong": "quality",
+  "mota_dung": "description",
+  "noidung": "review content"
+}
