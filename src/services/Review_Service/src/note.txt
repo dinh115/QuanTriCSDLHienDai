@@ -30,3 +30,19 @@ POST http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews/6849a57d0a19
 {
   "reply_content": "Cảm ơn bạn đã đánh giá sản phẩm, Shop rất vui khi thấy bạn thích sản phẩm này."
 }
+
+Pagination:
+First page
+http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews
+Second+ page example next page token
+http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews?pageState=001a0018363834623030336538663630656363313531333534643138f07ffffffaf07ffffffa
+{
+  "reviews": [...], // First 5 reviews
+  "nextPage": "somePageStateToken" // Save this token
+}
+(there will be no back token, since we will caching the URL)
+
+GET http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews/rating/5
+GET http://localhost:3003/product/{productId}/reviews/rating/{rating}?pageState={pageStateToken}
+GET http://localhost:3003/product/684ad7d68f60ecc151354d24/reviews/images
+GET http://localhost:3003/product/{productId}/reviews/images?pageState={pageStateToken}

@@ -1,13 +1,58 @@
 const ReviewModel = require('../models/review-model');
 
 class ReviewController {
+  // static async getProductReviews(req, res) {
+  //   try {
+  //     const { productId } = req.params;
+  //     const reviews = await ReviewModel.getReviewsByProductId(productId);
+  //     res.json(reviews);
+  //   } catch (error) {
+  //     console.error('Error fetching reviews:', error);
+  //     res.status(500).json({ error: 'Internal server error' });
+  //   }
+  // }
   static async getProductReviews(req, res) {
     try {
       const { productId } = req.params;
-      const reviews = await ReviewModel.getReviewsByProductId(productId);
-      res.json(reviews);
+      const { pageState } = req.query;
+      
+      const result = await ReviewModel.getReviewsByProductId(productId, pageState);
+      res.json({
+        reviews: result.reviews,
+        nextPage: result.pageState
+      });
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+  static async getReviewsByRating(req, res) {
+    try {
+      const { productId, rating } = req.params;
+      const { pageState } = req.query;
+      
+      const result = await ReviewModel.getReviewsByRating(productId, parseInt(rating), pageState);
+      res.json({
+        reviews: result.reviews,
+        nextPage: result.pageState
+      });
+    } catch (error) {
+      console.error('Error fetching reviews by rating:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+  static async getReviewsWithImages(req, res) {
+    try {
+      const { productId } = req.params;
+      const { pageState } = req.query;
+      
+      const result = await ReviewModel.getReviewsWithImages(productId, pageState);
+      res.json({
+        reviews: result.reviews,
+        nextPage: result.pageState
+      });
+    } catch (error) {
+      console.error('Error fetching reviews with images:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }

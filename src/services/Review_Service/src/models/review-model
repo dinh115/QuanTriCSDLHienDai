@@ -1,17 +1,82 @@
 const client = require('../config/database');
 
 class ReviewModel {
-  static async getReviewsByProductId(productId) {
+  // static async getReviewsByProductId(productId) {
+  //   const query = 'SELECT * FROM product_reviews WHERE masp = ?';
+  //   try {
+  //     const result = await client.execute(query, [productId], { prepare: true });
+  //     return result.rows;
+  //   } catch (error) {
+  //     console.error('Database error:', error);
+  //     throw error;
+  //   }
+  // }
+  static async getReviewsByProductId(productId, pageState) {
     const query = 'SELECT * FROM product_reviews WHERE masp = ?';
+    const options = { 
+      prepare: true,
+      fetchSize: 5 // Number of results per page
+    };
+    
+    if (pageState) {
+      options.pageState = pageState;
+    }
+
     try {
-      const result = await client.execute(query, [productId], { prepare: true });
-      return result.rows;
+      const result = await client.execute(query, [productId], options);
+      return {
+        reviews: result.rows,
+        pageState: result.pageState // Token for the next page
+      };
     } catch (error) {
       console.error('Database error:', error);
       throw error;
     }
   }
+  static async getReviewsByRating(productId, rating, pageState) {
+    const query = 'SELECT * FROM product_reviews WHERE masp = ? AND rating = ?';
+    const options = {
+      prepare: true,
+      fetchSize: 5
+    };
 
+    if (pageState) {
+      options.pageState = pageState;
+    }
+
+    try {
+      const result = await client.execute(query, [productId, rating], options);
+      return {
+        reviews: result.rows,
+        pageState: result.pageState
+      };
+    } catch (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+  }
+  static async getReviewsWithImages(productId, pageState) {
+    const query = 'SELECT * FROM product_reviews WHERE masp = ? AND has_images = true';
+    const options = {
+      prepare: true,
+      fetchSize: 5
+    };
+
+    if (pageState) {
+      options.pageState = pageState;
+    }
+
+    try {
+      const result = await client.execute(query, [productId], options);
+      return {
+        reviews: result.rows,
+        pageState: result.pageState
+      };
+    } catch (error) {
+      console.error('Database error:', error);
+      throw error;
+    }
+  }
   static async createReview(reviewData) {
     const hasImages = reviewData.images && reviewData.images.length > 0;
     
