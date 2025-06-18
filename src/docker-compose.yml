@@ -3,9 +3,12 @@ services:
     build: ./services/gateway
     ports:
       - "3000:3000"
+    environment:
+      CART_SERVICE_URL: "http://cart-service:3003"
     depends_on:
       - product-service
       - user-service
+      - cart-service
     networks:
       - internal
 
@@ -23,6 +26,23 @@ services:
     networks:
       - internal
 
+  cart-service:
+    build: ./services/Cart_Service
+    ports:
+      - "3003:3003"
+    environment:
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - redis
+    networks:
+      - internal
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - internal
 
 networks:
   internal:

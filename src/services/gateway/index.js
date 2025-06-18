@@ -1,5 +1,4 @@
 import express from 'express';
-import axios from 'axios';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import morgan from 'morgan';
 
@@ -15,10 +14,9 @@ app.use('/products', createProxyMiddleware({
   target: productServiceUrl,
   changeOrigin: true,
   pathRewrite: {
-    '^/products': '', // Remove /products prefix when forwarding to the product service
+    '^/products': '', // Remove /products prefix
   },
 }));
-
 
 // Proxy configuration for the user service
 const userServiceUrl = 'http://user-service:3002';
@@ -26,12 +24,18 @@ app.use('/users', createProxyMiddleware({
   target: userServiceUrl,
   changeOrigin: true,
   pathRewrite: {
-    '^/users': '', // Remove /users prefix when forwarding to the user service
+    '^/users': '', // Remove /users prefix
   },
 }));
 
-
-
+// Proxy configuration for the cart service - ĐÃ CẬP NHẬT
+app.use('/cart', createProxyMiddleware({
+  target: process.env.CART_SERVICE_URL || 'http://cart-service:3003',
+  changeOrigin: true,
+  pathRewrite: {
+    '^/cart': '', // Remove /cart prefix
+  },
+}));
 
 app.listen(PORT, () => {
   console.log(`api-gateway running at http://localhost:${PORT}`);
