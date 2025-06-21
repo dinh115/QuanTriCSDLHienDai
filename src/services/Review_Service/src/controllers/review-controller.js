@@ -11,6 +11,21 @@ class ReviewController {
   //     res.status(500).json({ error: 'Internal server error' });
   //   }
   // }
+  static async getReviewSummary(req, res) {
+    try {
+      const { productId } = req.params;
+      const summary = await ReviewModel.getReviewsSummaryByProductId(productId);
+      
+      if (summary.length === 0) {
+        return res.status(404).json({ error: 'No review summary found for this product.' });
+      }
+
+      res.json(summary[0]); // return the single row
+    } catch (error) {
+      console.error('Error fetching review summary:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
   static async getProductReviews(req, res) {
     try {
       const { productId } = req.params;
