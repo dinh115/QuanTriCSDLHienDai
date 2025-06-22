@@ -1,0 +1,58 @@
+services:
+  purchase-service:
+    build: ./Purchase_Service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/purchase_service
+      - USER_SERVICE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PAYMENT_SERVICE_URL=http://payment-service:3003
+      - AUTH_SERVICE_URL=http://auth-service:3004
+    depends_on:
+      - mongo
+      - user-service
+      - product-service
+      - payment-service
+      - auth-service
+
+  user-service:
+    build: ./User_Service_MockUp
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+
+  product-service:
+    build: ./Product_Service_MockUp
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+
+  payment-service:
+    build: ./Payment_Service_MockUp
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+
+  auth-service:
+    build: ./Authentication_Service_MockUp
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=24h
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
