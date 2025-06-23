@@ -5,7 +5,7 @@
 		"description": "Complete API testing collection for Purchase Service with cart integration, shipping calculation, voucher system, and multiple payment methods",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "44499845",
-		"_collection_link": "https://johnnguyen-8837355.postman.co/workspace/4b2e60b2-4c32-4708-8de6-b5044d8d6f40/collection/44499845-15dd4329-8b16-441c-8dcb-ed29018f7cb6?action=share&source=collection_link&creator=44499845"
+		"_collection_link": "https://johnnguyen-8837355.postman.co/workspace/John-Nguyen's-Workspace~4b2e60b2-4c32-4708-8de6-b5044d8d6f40/collection/44499845-15dd4329-8b16-441c-8dcb-ed29018f7cb6?action=share&source=collection_link&creator=44499845"
 	},
 	"item": [
 		{
@@ -237,7 +237,7 @@
 					"response": []
 				},
 				{
-					"name": "Internal User test Copy",
+					"name": "Cart Items",
 					"event": [
 						{
 							"listen": "test",
@@ -256,23 +256,24 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"disabled": true
 							},
 							{
 								"key": "X-Service-Token",
 								"value": "service-secret-token-123",
-								"type": "text"
+								"type": "text",
+								"disabled": true
 							}
 						],
 						"url": {
-							"raw": "{{userURL}}/internal/users/{{userId}}",
+							"raw": "{{cartURL}}/carts/{{cartId}}",
 							"host": [
-								"{{userURL}}"
+								"{{cartURL}}"
 							],
 							"path": [
-								"internal",
-								"users",
-								"{{userId}}"
+								"carts",
+								"{{cartId}}"
 							]
 						}
 					},
@@ -426,7 +427,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-003\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"paypal\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"789 Dong Khoi Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Le Van C\",\n    \"phoneNumber\": \"+84923456789\"\n  },\n  \"voucherCode\": \"FREESHIP\",\n  \"paymentToken\": \"paypal_token_123\"\n}"
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{product-003}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"paymentMethod\": \"paypal\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"789 Dong Khoi Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Le Van C\",\n    \"phoneNumber\": \"+84923456789\"\n  },\n  \"voucherCode\": \"FREESHIP\",\n  \"paymentToken\": \"paypal_token_123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/purchases",
@@ -1203,6 +1204,21 @@
 		{
 			"key": "product-003",
 			"value": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+			"type": "default"
+		},
+		{
+			"key": "cartURL",
+			"value": "http://localhost:3004",
+			"type": "default"
+		},
+		{
+			"key": "cartId",
+			"value": "79524227-ce77-4157-85e7-91ddb029b8f4",
+			"type": "default"
+		},
+		{
+			"key": "productURL",
+			"value": "http://localhost:3002",
 			"type": "default"
 		}
 	]
