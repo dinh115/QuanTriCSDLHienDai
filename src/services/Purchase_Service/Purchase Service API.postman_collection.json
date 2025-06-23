@@ -1,0 +1,1209 @@
+{
+	"info": {
+		"_postman_id": "15dd4329-8b16-441c-8dcb-ed29018f7cb6",
+		"name": "Purchase Service API",
+		"description": "Complete API testing collection for Purchase Service with cart integration, shipping calculation, voucher system, and multiple payment methods",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "44499845",
+		"_collection_link": "https://johnnguyen-8837355.postman.co/workspace/4b2e60b2-4c32-4708-8de6-b5044d8d6f40/collection/44499845-15dd4329-8b16-441c-8dcb-ed29018f7cb6?action=share&source=collection_link&creator=44499845"
+	},
+	"item": [
+		{
+			"name": "Health & Info",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/info",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"info"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Purchase Management",
+			"item": [
+				{
+					"name": "Login Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.collectionVariables.set('authToken', response.data.token);\r",
+									"    pm.collectionVariables.set('userId', response.data.user.id);\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"john.doe@example.com\",\r\n    \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{userURL}}/auth/login",
+							"host": [
+								"{{userURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {\r",
+									"    const response = pm.response.json();\r",
+									"    pm.collectionVariables.set('adminToken', response.data.token);\r",
+									"    pm.collectionVariables.set('adminId', response.data.user.id);\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"admin@example.com\",\r\n    \"password\": \"password\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{userURL}}/auth/login",
+							"host": [
+								"{{userURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Verify",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"token\": \"{{authToken}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{userURL}}/auth/verify",
+							"host": [
+								"{{userURL}}"
+							],
+							"path": [
+								"auth",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Internal User test",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Service-Token",
+								"value": "service-secret-token-123",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{userURL}}/internal/users/{{userId}}",
+							"host": [
+								"{{userURL}}"
+							],
+							"path": [
+								"internal",
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Internal User test Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-Service-Token",
+								"value": "service-secret-token-123",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{userURL}}/internal/users/{{userId}}",
+							"host": [
+								"{{userURL}}"
+							],
+							"path": [
+								"internal",
+								"users",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Purchase from Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('purchaseId', response.data.id);",
+									"    pm.test('Purchase created successfully', function () {",
+									"        pm.expect(response.success).to.be.true;",
+									"        pm.expect(response.data).to.have.property('id');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"cartId\": \"{{cartId1}}\",\n  \"paymentMethod\": \"credit_card\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"123 Nguyen Trai Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Nguyen Van A\",\n    \"phoneNumber\": \"+84901234567\"\n  },\n  \"billingAddress\": {\n    \"street\": \"123 Nguyen Trai Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Nguyen Van A\",\n    \"phoneNumber\": \"+84901234567\"\n  },\n  \"voucherCode\": \"SAVE10\",\n  \"paymentToken\": \"tok_visa_4242\",\n  \"notes\": \"Please deliver after 6 PM\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Validate Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productIds\": [\r\n        \"product-001\",\r\n        \"product-002\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{productURL}}/products/validate",
+							"host": [
+								"{{productURL}}"
+							],
+							"path": [
+								"products",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Purchase with Items",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-001\",\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"product-002\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"cod\",\n  \"shippingMethod\": \"express\",\n  \"shippingAddress\": {\n    \"street\": \"456 Le Loi Boulevard\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Tran Thi B\",\n    \"phoneNumber\": \"+84912345678\"\n  },\n  \"voucherCode\": \"WELCOME20\",\n  \"notes\": \"COD order with express shipping\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Purchase - PayPal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-003\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"paypal\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"789 Dong Khoi Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Le Van C\",\n    \"phoneNumber\": \"+84923456789\"\n  },\n  \"voucherCode\": \"FREESHIP\",\n  \"paymentToken\": \"paypal_token_123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Purchase by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Purchases (Customer)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases?page=1&limit=10&sortBy=createdAt&sortOrder=desc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Purchases (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases?status=pending&paymentMethod=cod&page=1&limit=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "pending"
+								},
+								{
+									"key": "paymentMethod",
+									"value": "cod"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Purchases",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/user/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"user",
+								"{{userId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Purchase Status Management",
+			"item": [
+				{
+					"name": "Cancel Purchase (Customer)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"cancelled\",\n  \"notes\": \"Customer requested cancellation\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Purchase (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"confirmed\",\n  \"notes\": \"Order confirmed and ready for processing\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark as Processing (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"processing\",\n  \"notes\": \"Order is being prepared for shipment\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark as Shipped (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"shipped\",\n  \"trackingNumber\": \"VN123456789\",\n  \"notes\": \"Package shipped via express delivery\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark as Delivered (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"delivered\",\n  \"notes\": \"Package delivered successfully\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shipping Calculation",
+			"item": [
+				{
+					"name": "Calculate Shipping - Vietnam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subtotal\": 250000,\n  \"shippingAddress\": {\n    \"street\": \"123 Nguyen Trai Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Nguyen Van A\",\n    \"phoneNumber\": \"+84901234567\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/shipping/calculate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"shipping",
+								"calculate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate Shipping - USA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subtotal\": 150000,\n  \"shippingAddress\": {\n    \"street\": \"1234 Main Street\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\",\n    \"fullName\": \"John Doe\",\n    \"phoneNumber\": \"+1234567890\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/shipping/calculate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"shipping",
+								"calculate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Calculate Shipping - Free Shipping Threshold",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"subtotal\": 600000,\n  \"shippingAddress\": {\n    \"street\": \"789 Dong Khoi Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Le Van C\",\n    \"phoneNumber\": \"+84923456789\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/shipping/calculate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"shipping",
+								"calculate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Scenarios",
+			"item": [
+				{
+					"name": "Create Purchase - Missing Auth",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-001\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"cod\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"123 Test Street\",\n    \"city\": \"Test City\",\n    \"state\": \"Test State\",\n    \"zipCode\": \"12345\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Test User\",\n    \"phoneNumber\": \"+84901234567\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Purchase - Invalid Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-001\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"cod\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"123 Test Street\",\n    \"city\": \"Test City\",\n    \"state\": \"Test State\",\n    \"zipCode\": \"12345\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Test User\",\n    \"phoneNumber\": \"+84901234567\"\n  },\n  \"voucherCode\": \"INVALID_VOUCHER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Purchase - Missing Cart/Items",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"paymentMethod\": \"cod\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"123 Test Street\",\n    \"city\": \"Test City\",\n    \"state\": \"Test State\",\n    \"zipCode\": \"12345\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Test User\",\n    \"phoneNumber\": \"+84901234567\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Purchase - Not Found",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/non-existent-id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"non-existent-id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status - Unauthorized",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases/{{purchaseId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases",
+								"{{purchaseId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test Voucher Scenarios",
+			"item": [
+				{
+					"name": "Test SAVE10 Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-001\",\n      \"quantity\": 1\n    }\n  ],\n  \"paymentMethod\": \"cod\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"123 Test Street\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Test User\",\n    \"phoneNumber\": \"+84901234567\"\n  },\n  \"voucherCode\": \"SAVE10\",\n  \"notes\": \"Testing SAVE10 voucher - 10% discount\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test WELCOME20 Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-002\",\n      \"quantity\": 2\n    }\n  ],\n  \"paymentMethod\": \"credit_card\",\n  \"shippingMethod\": \"express\",\n  \"shippingAddress\": {\n    \"street\": \"456 Test Avenue\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Test User 2\",\n    \"phoneNumber\": \"+84912345678\"\n  },\n  \"voucherCode\": \"WELCOME20\",\n  \"paymentToken\": \"tok_visa_4242\",\n  \"notes\": \"Testing WELCOME20 voucher - 20,000 VND fixed discount\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test STUDENT15 Voucher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"product-003\",\n      \"quantity\": 3\n    }\n  ],\n  \"paymentMethod\": \"debit_card\",\n  \"shippingMethod\": \"standard\",\n  \"shippingAddress\": {\n    \"street\": \"789 University Road\",\n    \"city\": \"Ho Chi Minh City\",\n    \"state\": \"Ho Chi Minh\",\n    \"zipCode\": \"70000\",\n    \"country\": \"Vietnam\",\n    \"fullName\": \"Student User\",\n    \"phoneNumber\": \"+84923456789\"\n  },\n  \"voucherCode\": \"STUDENT15\",\n  \"paymentToken\": \"tok_mastercard_5555\",\n  \"notes\": \"Testing STUDENT15 voucher - 15% discount with max 50,000 VND\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/purchases",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "{{authToken}}",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "{{adminToken}}",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "{{userId}}",
+			"type": "string"
+		},
+		{
+			"key": "purchaseId",
+			"value": "{{purchaseId}}",
+			"type": "string"
+		},
+		{
+			"key": "userURL",
+			"value": "http://localhost:3001",
+			"type": "default"
+		},
+		{
+			"key": "adminId",
+			"value": "{{adminId}}",
+			"type": "string"
+		},
+		{
+			"key": "product-002",
+			"value": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+			"type": "default"
+		},
+		{
+			"key": "product-001",
+			"value": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+			"type": "default"
+		},
+		{
+			"key": "product-003",
+			"value": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+			"type": "default"
+		}
+	]
+}

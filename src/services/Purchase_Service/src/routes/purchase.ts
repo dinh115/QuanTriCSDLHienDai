@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { PurchaseController } from '../controllers/purchaseController';
-import { authenticate, authorize, authorizeOwnerOrAdmin } from '../middleware/auth';
+import {
+    authenticate,
+    authorize,
+    authorizeOwnerOrAdmin,
+    authorizePurchaseAccess,
+    authorizePurchaseStatusUpdate
+} from '../middleware/auth';
 
 const router = Router();
 const purchaseController = new PurchaseController();
@@ -8,19 +14,28 @@ const purchaseController = new PurchaseController();
 // All routes require authentication
 router.use(authenticate);
 
-// Create a new purchase (customers can create for themselves, admins for anyone)
+// Create a new purchase 
+// Customers can create for themselves, admins can create for anyone
 router.post('/', purchaseController.createPurchase);
 
-// Get all purchases (admins see all, customers see only their own)
+// Get all purchases 
+// Admins see all, customers see only their own
 router.get('/', purchaseController.getPurchases);
 
-// Get a specific purchase by ID (owner or admin only)
-router.get('/:id', purchaseController.getPurchase);
+// Calculate shipping options (any authenticated user)
+router.post('/shipping/calculate', purchaseController.calculateShipping);
 
-// Update purchase status (admin can update any, customers can only cancel their pending purchases)
-router.patch('/:id/status', purchaseController.updatePurchaseStatus);
+// Get a specific purchase by ID
+// Owner or admin only - authorization check will be in controller
+router.get('/:id', authorizePurchaseAccess, purchaseController.getPurchase);
 
-// Get purchases for a specific user (owner or admin only)
-router.get('/user/:userId', purchaseController.getUserPurchases);
+// Update purchase status
+// Admin can update any status, customers can only cancel their pending purchases
+router.patch('/:id/status', authorizePurchaseStatusUpdate, purchaseController.updatePurchaseStatus);
+
+// Get purchases for a specific user
+// Owner or admin only
+router.get('/user/:userId', authorizeOwnerOrAdmin, purchaseController.getUserPurchases);
+
 
 export default router;

@@ -9,13 +9,17 @@ services:
       - USER_SERVICE_URL=http://user-service:3001
       - PRODUCT_SERVICE_URL=http://product-service:3002
       - PAYMENT_SERVICE_URL=http://payment-service:3003
-      - AUTH_SERVICE_URL=http://auth-service:3004
+      - CART_SERVICE_URL=http://cart-service:3004
+      - VOUCHER_SERVICE_URL=http://voucher-service:3005
+      - DEFAULT_SHIPPING_RATE=15000
+      - EXPRESS_SHIPPING_RATE=30000
+      - FREE_SHIPPING_THRESHOLD=100000
     depends_on:
       - mongo
       - user-service
       - product-service
       - payment-service
-      - auth-service
+      - cart-service
 
   user-service:
     build: ./User_Service_MockUp
@@ -23,13 +27,16 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
-
+      - PORT=3001
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=24h
   product-service:
     build: ./Product_Service_MockUp
     ports:
       - "3002:3002"
     environment:
       - NODE_ENV=development
+      - PORT=3002
 
   payment-service:
     build: ./Payment_Service_MockUp
@@ -37,15 +44,16 @@ services:
       - "3003:3003"
     environment:
       - NODE_ENV=development
+      - PORT=3003
 
-  auth-service:
-    build: ./Authentication_Service_MockUp
+
+  cart-service:
+    build: ./Cart_Service_MockUp
     ports:
       - "3004:3004"
     environment:
       - NODE_ENV=development
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=24h
+      - PORT=3004
 
   mongo:
     image: mongo:7.0

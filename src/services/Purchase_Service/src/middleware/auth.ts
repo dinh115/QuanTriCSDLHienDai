@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
+import chalk from 'chalk';
 
 export interface AuthenticatedRequest extends Request {
     user?: {
@@ -16,29 +17,60 @@ export const authenticate = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
         if (!token) {
-            res.status(401).json({ error: 'Authentication token required' });
+            res.status(401).json({
+                success: false,
+                error: 'Authentication token required'
+            });
             return;
         }
 
-        // Verify token with auth service
-        const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3004';
+        // Use your UserService's auth verification endpoint
+        const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
         const response = await axios.post(`${authServiceUrl}/auth/verify`, { token });
 
         if (response.data.success) {
-            req.user = response.data.data;
+            req.user = {
+                userId: response.data.data.userId,
+                email: response.data.data.email,
+                role: response.data.data.role,
+                status: response.data.data.status
+            };
             next();
         } else {
-            res.status(401).json({ error: 'Invalid token' });
+            res.status(401).json({
+                success: false,
+                error: 'Invalid token'
+            });
         }
     } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-            res.status(401).json({ error: 'Invalid or expired token' });
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Invalid or expired token'
+                });
+            } else if (error.response?.status === 400) {
+                res.status(400).json({
+                    success: false,
+                    error: 'Invalid request format'
+                });
+            } else {
+                console.error(chalk.bold.red('Auth service error:', error.response?.data || error.message));
+                res.status(503).json({
+                    success: false,
+                    error: 'Authentication service unavailable'
+                });
+            }
         } else {
-            console.error('Authentication error:', error);
-            res.status(500).json({ error: 'Authentication service unavailable' });
+            console.error(chalk.bold.red('Authentication error:', error));
+            res.status(500).json({
+                success: false,
+                error: 'Internal authentication error'
+            });
         }
     }
 };
@@ -46,12 +78,18 @@ export const authenticate = async (
 export const authorize = (roles: string[]) => {
     return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
         if (!req.user) {
-            res.status(401).json({ error: 'Authentication required' });
+            res.status(401).json({
+                success: false,
+                error: 'Authentication required'
+            });
             return;
         }
 
         if (!roles.includes(req.user.role)) {
-            res.status(403).json({ error: 'Insufficient permissions' });
+            res.status(403).json({
+                success: false,
+                error: 'Insufficient permissions'
+            });
             return;
         }
 
@@ -65,7 +103,10 @@ export const authorizeOwnerOrAdmin = (
     next: NextFunction
 ): void => {
     if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' });
+        res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
         return;
     }
 
@@ -77,6 +118,91 @@ export const authorizeOwnerOrAdmin = (
     if (userRole === 'admin' || requestingUserId === userId) {
         next();
     } else {
-        res.status(403).json({ error: 'Access denied' });
+        res.status(403).json({
+            success: false,
+            error: 'Access denied - you can only access your own data'
+        });
     }
+};
+
+
+export const authorizeShopOwnerOrAdmin = (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): void => {
+    if (!req.user) {
+        res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+        return;
+    }
+
+    const userRole = req.user.role;
+
+    if (userRole === 'admin' || userRole === 'shop_owner') {
+        next();
+        return;
+    }
+
+    res.status(403).json({
+        success: false,
+        error: 'Access denied - shop owner or admin required'
+    });
+};
+
+// Additional middleware for purchase-specific authorization
+export const authorizePurchaseAccess = (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): void => {
+    if (!req.user) {
+        res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+        return;
+    }
+
+    // For routes with purchase ID, we'll need to check ownership in the controller
+    // This middleware just ensures the user is authenticated
+    next();
+};
+
+// Middleware to check if user can modify purchase status
+export const authorizePurchaseStatusUpdate = (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+): void => {
+    if (!req.user) {
+        res.status(401).json({
+            success: false,
+            error: 'Authentication required'
+        });
+        return;
+    }
+
+    const userRole = req.user.role;
+    const { status } = req.body;
+
+    // Admins and shop owner can update to any status
+    if (userRole === 'admin' || userRole === 'shop_owner') {
+        next();
+        return;
+    }
+
+    // Customers can only cancel their own pending purchases
+    if (userRole === 'customer' && status === 'cancelled') {
+        next();
+        return;
+    }
+
+    res.status(403).json({
+        success: false,
+        error: 'Insufficient permissions to update purchase status'
+    });
+
 };
