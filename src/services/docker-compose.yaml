@@ -22,7 +22,7 @@ services:
       - cart-service
 
   user-service:
-    build: ./User_Service_MockUp
+    build: ./User_Service
     ports:
       - "3001:3001"
     environment:
@@ -39,7 +39,7 @@ services:
       - PORT=3002
 
   payment-service:
-    build: ./Payment_Service_MockUp
+    build: ./Payment_Service
     ports:
       - "3003:3003"
     environment:
