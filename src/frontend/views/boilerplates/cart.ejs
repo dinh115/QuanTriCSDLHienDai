@@ -1,0 +1,13 @@
+<h2>🛒 Giỏ hàng</h2>
+
+<% if (Object.keys(cart).length === 0) { %>
+  <p>Giỏ hàng trống.</p>
+<% } else { %>
+  <ul>
+    <% for (let product in cart) { %>
+      <li><strong><%= product %></strong>: <%= cart[product] %> sản phẩm</li>
+    <% } %>
+  </ul>
+<% } %>
+
+<a href="/">⬅️ Về trang chủ</a>

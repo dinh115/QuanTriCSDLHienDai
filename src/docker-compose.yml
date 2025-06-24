@@ -3,8 +3,6 @@ services:
     build: ./services/gateway
     ports:
       - "3000:3000"
-    environment:
-      CART_SERVICE_URL: "http://cart-service:3003"
     depends_on:
       - product-service
       - user-service

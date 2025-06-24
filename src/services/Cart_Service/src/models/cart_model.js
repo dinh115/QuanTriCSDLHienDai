@@ -1,43 +1,21 @@
-export default class CartModel {
-  constructor(redisClient) {
-    this.redis = redisClient;
-  }
+import { v4 as uuidv4 } from 'uuid';
 
-  async addToCart(userId, productId, quantity) {
-    const key = `cart:${userId}`;
-    await this.redis.hSet(key, productId, quantity);
-    return this.getCart(userId);
-  }
+export function createNewCart(cartId = uuidv4(), userId = uuidv4()) {
+  return {
+    id: cartId,
+    userId,
+    items: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+}
 
-  async getCart(userId) {
-    const key = `cart:${userId}`;
-    return await this.redis.hGetAll(key);
-  }
-
-  async removeFromCart(userId, productId) {
-    const key = `cart:${userId}`;
-    await this.redis.hDel(key, productId);
-    return this.getCart(userId);
-  }
-}export default class CartModel {
-  constructor(redisClient) {
-    this.redis = redisClient;
-  }
-
-  async addToCart(userId, productId, quantity) {
-    const key = `cart:${userId}`;
-    await this.redis.hSet(key, productId, quantity);
-    return this.getCart(userId);
-  }
-
-  async getCart(userId) {
-    const key = `cart:${userId}`;
-    return await this.redis.hGetAll(key);
-  }
-
-  async removeFromCart(userId, productId) {
-    const key = `cart:${userId}`;
-    await this.redis.hDel(key, productId);
-    return this.getCart(userId);
-  }
+export function createNewCartItem({ shopId, productId, quantity }) {
+  return {
+    id: uuidv4(),
+    shopId,
+    productId,
+    quantity,
+    addedAt: new Date().toISOString()
+  };
 }

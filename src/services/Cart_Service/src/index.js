@@ -1,13 +1,12 @@
 import express from 'express';
-import cartRoute from './routes/cart_route.js';
-import redisClient from './configs/redis.js';
+import cartRoutes from './routes/cart_route.js';
 
 const app = express();
-const port = process.env.PORT || 3003;
+const PORT = 3001;
 
 app.use(express.json());
-app.use('/cart', cartRoute);
+app.use(cartRoutes);
 
-app.listen(port, () => {
-  console.log(`Cart service running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`🛒 Cart Service running at http://localhost:${PORT}`);
 });
