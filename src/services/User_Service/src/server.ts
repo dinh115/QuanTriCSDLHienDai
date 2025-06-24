@@ -3,15 +3,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import chalk from 'chalk';
 
 import logger from './config/logger';
-import userRoutes from './routes/index';
+import userRoutes from './routes/user';
+import authRoutes from './routes/auth';
+import internalRoutes from './routes/internal';
+import adminRoutes from './routes/admin';
+import redisConnection from './config/redis';
+
 import { errorHandler } from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/requestLogger';
-import { validateUUID } from './middlewares/validation';
 import { connectDatabase } from './config/database'
 
 // Load environment variables
@@ -39,7 +41,7 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // limit each IP to 5 requests per windowMs for auth routes
+    max: config.NODE_ENV === 'production' ? 5 : 1000, // limit each IP to 5 requests per windowMs for auth routes
     message: {
         success: false,
         error: 'Too many authentication attempts, please try again later.'
@@ -53,20 +55,8 @@ app.use(limiter);
 // Compression middleware
 app.use(compression());
 
-// Body parsing middleware
-app.use(express.json({
-    limit: '10mb',
-    verify: (req: any, res, buf) => {
-        try {
-            JSON.parse(buf.toString());
-        } catch (e) {
-            // Throw error to be handled by error handler middleware
-            const err: any = new Error('Invalid JSON format');
-            err.status = 400;
-            throw err;
-        }
-    }
-}));
+app.use(express.json());
+
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -88,9 +78,10 @@ app.get('/health', (req, res) => {
 });
 
 // API routes with UUID validation middleware for user ID parameters
-app.use('/api/auth', userRoutes);
-app.use('/api/users/:id', validateUUID('id'), userRoutes);
-app.use('/api/internal/users/:id', validateUUID('id'), userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/internal', internalRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -109,7 +100,7 @@ app.use(errorHandler);
 const startServer = async () => {
     try {
         await connectDatabase();
-
+        await redisConnection.connect();
         const server = app.listen(config.PORT, () => {
             logger.info(`Server running on port ${config.PORT} in ${config.NODE_ENV} mode`);
         });
@@ -135,31 +126,37 @@ const startServer = async () => {
         });
 
         // Graceful shutdown
-        process.on('SIGTERM', () => {
+        process.on('SIGTERM', async () => {
             console.log(chalk.bgGreenBright('SIGTERM received, shutting down gracefully'));
+            await redisConnection.disconnect();
             process.exit(0);
         });
 
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             console.log(chalk.bgGreenBright('SIGINT received, shutting down gracefully'));
+            await redisConnection.disconnect();
+
             process.exit(0);
         });
         return server;
 
     } catch (error) {
         logger.error('Failed to start server:', error);
+        await redisConnection.disconnect();
         process.exit(1);
     }
 };
 
 // Handle uncaught exceptions and unhandled rejections
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', async (error) => {
     logger.error('Uncaught Exception:', error);
+    await redisConnection.disconnect();
     process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', async (reason, promise) => {
     logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    await redisConnection.disconnect();
     process.exit(1);
 });
 

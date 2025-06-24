@@ -27,7 +27,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export interface LoginRequest {
-    email: string;
+    username: string;
     password: string;
 }
 
@@ -53,7 +53,6 @@ export interface UpdateUserRequest {
     firstName?: string;
     lastName?: string;
     email?: string;
-    username?: string;
     password?: string;
     role?: 'customer' | 'admin' | 'shop_owner';
     status?: 'active' | 'inactive';

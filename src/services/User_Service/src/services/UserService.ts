@@ -98,16 +98,16 @@ export class UserService {
   async getUserById(id: string): Promise<IUser | null> {
     try {
       // Try cache first
-      const cachedUser = await cacheService.getCachedUser(id);
-      if (cachedUser) {
-        return cachedUser;
-      }
+      // const cachedUser = await cacheService.getCachedUser(id);
+      // if (cachedUser) {
+      //   return cachedUser;
+      // }
 
       // Fetch from database
       const user = await User.findById(id);
       if (user) {
         // Cache for 5 minutes
-        await cacheService.cacheUser(id, user.toJSON(), 300);
+        //await cacheService.cacheUser(id, user.toJSON(), 300);
       }
 
       return user;
@@ -130,6 +130,12 @@ export class UserService {
   async createUser(userData: CreateUserRequest): Promise<IUser> {
     try {
       // Check if user already exists
+      const existingUsername = await User.findOne({
+        email: userData.username.toLowerCase()
+      });
+      if (existingUsername) {
+        throw new Error('User with this email already exists');
+      }
       const existingUser = await User.findOne({
         email: userData.email.toLowerCase()
       });
@@ -138,11 +144,12 @@ export class UserService {
         throw new Error('User with this email already exists');
       }
 
-      // Generate default password if not provided
+      // Generate default password if not provided somehow
       const password = userData.password || 'defaultPassword123';
 
       const user = new User({
         email: userData.email.toLowerCase(),
+        username: userData.username,
         password: password,
         firstName: userData.firstName.trim(),
         lastName: userData.lastName.trim(),
@@ -153,7 +160,7 @@ export class UserService {
       await user.save();
 
       // Cache the new user
-      await cacheService.cacheUser(user.id, user.toJSON());
+      //await cacheService.cacheUser(user.id, user.toJSON());
 
       return user;
     } catch (error) {
@@ -197,7 +204,7 @@ export class UserService {
       await user.save();
 
       // Update cache
-      await cacheService.cacheUser(id, user.toJSON());
+      //await cacheService.cacheUser(id, user.toJSON());
 
       return user;
     } catch (error) {
@@ -212,7 +219,7 @@ export class UserService {
 
       if (result) {
         // Remove from cache
-        await cacheService.invalidateUserCache(id);
+        //await cacheService.invalidateUserCache(id);
         return true;
       }
 

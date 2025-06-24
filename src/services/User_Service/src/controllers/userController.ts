@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Response } from 'express';
 import { authService } from '../services/authService';
 import userService from '../services/UserService';
@@ -85,11 +86,21 @@ class UserController {
     }
 
     /**
-     * Logout user
-     */
+    * Logout user
+    */
     async logout(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const { token } = req.body;
+            // Get token from Authorization header
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Authorization header missing or invalid format'
+                });
+                return;
+            }
+
+            const token = authHeader.substring(7); // Remove 'Bearer ' prefix
             await authService.logout(token);
 
             res.json({
@@ -120,7 +131,7 @@ class UserController {
 
             res.json({
                 success: true,
-                data: user.toJSON()
+                data: user
             });
         } catch (error) {
             logger.error('Get profile controller error:', error);
@@ -154,7 +165,21 @@ class UserController {
                 sortOrder: sortOrder as 'asc' | 'desc'
             };
 
-            const result = await userService.findUsers(queryOptions);
+            let result = await userService.findUsers(queryOptions);
+
+            if (req.user?.role !== 'admin') {
+                const { users, ...rest } = result;
+
+                const usersNoPassword = users.map((user: any) => {
+                    const { password, ...userWithoutPassword } = user;
+                    return userWithoutPassword;
+                });
+
+                result = {
+                    users: usersNoPassword,
+                    ...rest
+                };
+            }
 
             res.json({
                 success: true,
@@ -162,6 +187,29 @@ class UserController {
             });
         } catch (error) {
             logger.error('Get users controller error:', error);
+            res.status(500).json({ success: false, error: 'Internal server error' });
+        }
+    }
+
+    /**
+    * Get user by ID Internal
+    */
+    async getUserInternal(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+
+            const user = await userService.getUserById(id);
+            if (!user) {
+                res.status(404).json({ success: false, error: 'User not found' });
+                return;
+            }
+
+            res.json({
+                success: true,
+                data: user
+            });
+        } catch (error) {
+            logger.error('Get user controller error:', error);
             res.status(500).json({ success: false, error: 'Internal server error' });
         }
     }
@@ -187,7 +235,7 @@ class UserController {
 
             res.json({
                 success: true,
-                data: user.toJSON()
+                data: user
             });
         } catch (error) {
             logger.error('Get user controller error:', error);
@@ -213,7 +261,7 @@ class UserController {
 
             res.status(201).json({
                 success: true,
-                data: user.toJSON()
+                data: user
             });
         } catch (error) {
             logger.error('Create user controller error:', error);
@@ -227,6 +275,63 @@ class UserController {
         }
     }
 
+    /**
+  * Update user (their own profile)
+  */
+    async updateProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const id = req.user?.userId;
+            if (!id) {
+                res.status(401).json({ success: false, error: 'Unauthorized' });
+                return;
+            }
+
+            const { error, value } = updateUserSchema.validate(req.body);
+
+            if (error) {
+                res.status(400).json({
+                    success: false,
+                    error: error.details[0].message
+                });
+                return;
+            }
+
+            // Users can only update their own profile unless they're admin
+            if (req.user?.role !== 'admin' && req.user?.userId !== id) {
+                res.status(403).json({ success: false, error: 'Access denied' });
+                return;
+            }
+
+            // Only admins can change role and status
+            if (req.user?.role !== 'admin' && (value.role || value.status)) {
+                res.status(403).json({
+                    success: false,
+                    error: 'Only admins can change role or status'
+                });
+                return;
+            }
+
+            const user = await userService.updateUser(id, value);
+            if (!user) {
+                res.status(404).json({ success: false, error: 'User not found' });
+                return;
+            }
+
+            res.json({
+                success: true,
+                data: user
+            });
+        } catch (error) {
+            logger.error('Update user controller error:', error);
+            const message = error instanceof Error ? error.message : 'User update failed';
+
+            if (message.includes('Email already in use')) {
+                res.status(409).json({ success: false, error: message });
+            } else {
+                res.status(500).json({ success: false, error: 'Internal server error' });
+            }
+        }
+    }
     /**
      * Update user
      */
@@ -266,7 +371,7 @@ class UserController {
 
             res.json({
                 success: true,
-                data: user.toJSON()
+                data: user
             });
         } catch (error) {
             logger.error('Update user controller error:', error);
@@ -321,7 +426,7 @@ class UserController {
 
             res.json({
                 success: true,
-                data: users.map(user => user.toJSON())
+                data: users
             });
         } catch (error) {
             logger.error('Batch get users controller error:', error);

@@ -62,8 +62,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 };
 
 // Middleware for admin access
-export const requireAdmin = (req: any, res: Response, next: NextFunction) => {
-    if (req.user.role !== 'admin') {
+export const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (req.user?.role !== 'admin') {
         return res.status(403).json({
             success: false,
             error: 'Admin access required'

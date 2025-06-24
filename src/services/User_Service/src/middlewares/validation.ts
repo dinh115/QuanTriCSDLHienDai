@@ -5,9 +5,9 @@ import logger from '../config/logger';
 
 // =================== VALIDATION SCHEMAS ===================
 export const loginSchema = Joi.object({
-    email: Joi.string().email().required().messages({
-        'string.email': 'Please provide a valid email address',
-        'any.required': 'Email is required'
+    username: Joi.string().required().messages({
+        'string.username': 'Please provide a valid username address',
+        'any.required': 'Username is required'
     }),
     password: Joi.string().min(6).required().messages({
         'string.min': 'Password must be at least 6 characters long',

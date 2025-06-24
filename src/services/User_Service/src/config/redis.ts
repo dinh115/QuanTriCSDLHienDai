@@ -3,10 +3,12 @@ import { config } from './environments';
 import chalk from 'chalk';
 
 class RedisConnection {
+    private static instance: RedisConnection | null = null;
     private client: RedisClientType;
     private isConnected: boolean = false;
 
-    constructor() {
+    private constructor() {
+        console.log(chalk.bold.yellowBright("REDIS CONTRUCTOR WAS CALLED"));
         this.client = createClient({
             url: config.REDIS_URL
         });
@@ -31,12 +33,19 @@ class RedisConnection {
         });
     }
 
+    public static getInstance(): RedisConnection {
+        if (!RedisConnection.instance) {
+            RedisConnection.instance = new RedisConnection();
+        }
+        return RedisConnection.instance;
+    }
+
     async connect(): Promise<void> {
+        console.log(chalk.bold.red("REDIS CONNECT WAS CALLED"));
         try {
             await this.client.connect();
         } catch (error) {
             console.error(chalk.bold.red('Failed to connect to Redis:', error));
-            // Don't exit process, allow app to run without Redis
         }
     }
 
@@ -57,5 +66,5 @@ class RedisConnection {
     }
 }
 
-export const redisConnection = new RedisConnection();
+export const redisConnection = RedisConnection.getInstance();
 export default redisConnection;

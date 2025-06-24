@@ -15,10 +15,10 @@ class AuthService {
     user: IUser;
   }> {
     try {
-      const { email, password } = credentials;
+      const { username, password } = credentials;
 
-      // Find user by email
-      const user = await User.findOne({ email: email.toLowerCase() });
+      // Find user by username
+      const user = await User.findOne({ username: username.toLowerCase() });
       if (!user) {
         throw new Error('Invalid credentials');
       }
@@ -41,7 +41,7 @@ class AuthService {
       await cacheService.setSession(token);
 
       // Cache user data
-      await cacheService.cacheUser(user._id.toString(), user.toJSON());
+      //await cacheService.cacheUser(user._id.toString(), user.toJSON());
 
       logger.info(`User logged in: ${user._id}`);
 
@@ -63,9 +63,14 @@ class AuthService {
     user: IUser;
   }> {
     try {
-      const { email, password, firstName, lastName } = userData;
+      const { email, username, password, firstName, lastName } = userData;
 
       // Check if user already exists
+      const existingUsername = await User.findOne({ username: username.toLowerCase() });
+      if (existingUsername) {
+        throw new Error('User with this username already exists');
+      }
+
       const existingUser = await User.findOne({ email: email.toLowerCase() });
       if (existingUser) {
         throw new Error('User with this email already exists');
@@ -77,6 +82,7 @@ class AuthService {
       // Create new user
       const newUser = new User({
         email: email.toLowerCase(),
+        username: username,
         password: hashedPassword,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -93,7 +99,7 @@ class AuthService {
       await cacheService.setSession(token);
 
       // Cache user data
-      await cacheService.cacheUser(savedUser._id.toString(), savedUser.toJSON());
+      //await cacheService.cacheUser(savedUser._id.toString(), savedUser.toJSON());
 
       logger.info(`User registered: ${savedUser._id}`);
 
@@ -131,7 +137,7 @@ class AuthService {
       if (!user || user.status !== 'active') {
         // Remove session for non-existent or inactive user
         await cacheService.deleteSession(token);
-        await cacheService.invalidateUserCache(decoded.userId);
+        //await cacheService.invalidateUserCache(decoded.userId);
         return null;
       }
 
@@ -267,7 +273,7 @@ class AuthService {
       await cacheService.deletePattern(`session:*`);
 
       // Invalidate user cache
-      await cacheService.invalidateUserCache(userId);
+      //await cacheService.invalidateUserCache(userId);
 
       logger.info(`All sessions logged out for user: ${userId}`);
     } catch (error) {

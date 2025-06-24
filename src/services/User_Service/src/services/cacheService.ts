@@ -75,17 +75,17 @@ export class CacheService {
     }
 
     // User caching
-    async cacheUser(userId: string, userData: any, ttl: number = 300): Promise<boolean> {
-        return this.set(`user:${userId}`, userData, ttl);
-    }
+    // async cacheUser(userId: string, userData: any, ttl: number = 300): Promise<boolean> {
+    //     return this.set(`user:${userId}`, userData, ttl);
+    // }
 
-    async getCachedUser(userId: string): Promise<any> {
-        return this.get(`user:${userId}`);
-    }
+    // async getCachedUser(userId: string): Promise<any> {
+    //     return this.get(`user:${userId}`);
+    // }
 
-    async invalidateUserCache(userId: string): Promise<boolean> {
-        return this.del(`user:${userId}`);
-    }
+    // async invalidateUserCache(userId: string): Promise<boolean> {
+    //     return this.del(`user:${userId}`);
+    // }
 
     // Pattern-based operations
     async deletePattern(pattern: string): Promise<boolean> {
