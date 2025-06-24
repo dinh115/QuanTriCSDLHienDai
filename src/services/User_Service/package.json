@@ -1,28 +1,39 @@
 {
-  "name": "user-service",
+  "name": "user-management-service",
   "version": "1.0.0",
-  "description": "Mock user service for testing",
-  "main": "dist/server.js",
+  "description": "User management service with MongoDB and Redis",
+  "main": "src/server.ts",
   "scripts": {
+    "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "start": "node dist/server.js"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "chalk": "^5.4.1",
+    "compression": "^1.8.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
     "helmet": "^7.1.0",
-    "uuid": "^9.0.1"
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "redis": "^4.6.12",
+    "uuid": "^9.0.1",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.8.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.5",
     "@types/uuid": "^9.0.7",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.2.2"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
 }
