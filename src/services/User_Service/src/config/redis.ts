@@ -8,7 +8,7 @@ class RedisConnection {
     private isConnected: boolean = false;
 
     private constructor() {
-        console.log(chalk.bold.yellowBright("REDIS CONTRUCTOR WAS CALLED"));
+        //console.log(chalk.bold.yellowBright("REDIS CONTRUCTOR WAS CALLED"));
         this.client = createClient({
             url: config.REDIS_URL
         });
@@ -41,7 +41,7 @@ class RedisConnection {
     }
 
     async connect(): Promise<void> {
-        console.log(chalk.bold.red("REDIS CONNECT WAS CALLED"));
+        //console.log(chalk.bold.red("REDIS CONNECT WAS CALLED"));
         try {
             await this.client.connect();
         } catch (error) {
