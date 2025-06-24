@@ -41,6 +41,21 @@ export async function getCart(req, res) {
   }
 }
 
+export async function deleteCartItem(req, res) {
+  const { cartId, itemId } = req.params;
+  const cartKey = `cart:${cartId}`;
+
+  const cartData = await redisClient.get(cartKey);
+  if (!cartData) return res.status(404).json({ error: 'Không tìm thấy giỏ' });
+
+  const cart = JSON.parse(cartData);
+  cart.items = cart.items.filter(item => item.id !== itemId);
+  cart.updatedAt = new Date().toISOString();
+
+  await redisClient.set(cartKey, JSON.stringify(cart));
+  res.json({ message: 'Đã xóa sản phẩm', cart });
+}
+
 export async function clearCartItems(req, res) {
   const { cartId } = req.params;
   const cartKey = `cart:${cartId}`;

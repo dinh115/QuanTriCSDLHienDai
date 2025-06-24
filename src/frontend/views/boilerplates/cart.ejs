@@ -1,13 +1,12 @@
-<h2>🛒 Giỏ hàng</h2>
+<h2>🛒 Giỏ hàng của bạn</h2>
 
-<% if (Object.keys(cart).length === 0) { %>
-  <p>Giỏ hàng trống.</p>
-<% } else { %>
-  <ul>
-    <% for (let product in cart) { %>
-      <li><strong><%= product %></strong>: <%= cart[product] %> sản phẩm</li>
-    <% } %>
-  </ul>
-<% } %>
+<ul>
+  <% cart.items.forEach(item => { %>
+    <li>
+      <input type="checkbox" <% if (lastAddedId === item.id) { %>checked<% } %> />
+      <strong>Sản phẩm:</strong> <%= item.productId %> — Số lượng: <%= item.quantity %>
+    </li>
+  <% }) %>
+</ul>
 
-<a href="/">⬅️ Về trang chủ</a>
+<a href="/">⬅️ Tiếp tục mua hàng</a>
