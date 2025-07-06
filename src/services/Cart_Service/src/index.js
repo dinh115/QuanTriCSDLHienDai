@@ -1,12 +1,12 @@
 import express from 'express';
-import cartRoutes from './routes/cart_route.js';
+import cartRouter from './routes/cart_route.js';
 
 const app = express();
-const PORT = 3001;
-
 app.use(express.json());
-app.use(cartRoutes);
 
+app.use('/carts', cartRouter); // Mount đúng prefix
+
+const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`🛒 Cart Service running at http://localhost:${PORT}`);
 });

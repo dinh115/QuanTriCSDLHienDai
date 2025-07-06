@@ -1,12 +1,346 @@
-<h2>🛒 Giỏ hàng của bạn</h2>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng của bạn</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .cart-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cart-header h1 {
+            font-size: 24px;
+        }
+        
+        .cart-content {
+            padding: 20px;
+        }
+        
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-checkbox {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .item-details {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 20px;
+        }
+        
+        .quantity-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .quantity-btn:hover {
+            background: #2980b9;
+        }
+        
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .item-price {
+            font-weight: bold;
+            color: #e74c3c;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        
+        .cart-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        
+        .continue-shopping {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .continue-shopping:hover {
+            text-decoration: underline;
+        }
+        
+        .cart-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .checkout-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .checkout-btn:hover {
+            background: #229954;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-cart i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <div class="cart-header">
+            <i class="fas fa-shopping-cart"></i>
+            <h1>Giỏ hàng của bạn</h1>
+        </div>
+        
+        <div class="cart-content">
+            <% if (typeof cartItems !== 'undefined' && cartItems.length > 0) { %>
+                <% cartItems.forEach((item, index) => { %>
+                    <div class="cart-item">
+                        <input
+                            type="checkbox"
+                            class="item-checkbox"
+                            <%= lastAddedId === item.id ? 'checked' : '' %>>
+                        
+                        <div class="item-info">
+                            <div class="item-name">Sản phẩm: <%= item.name || 'helios_300' %></div>
+                            <div class="item-details">Số lượng: <%= item.quantity || 1 %></div>
+                        </div>
+                        
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="updateQuantity('<%= item.id %>', -1)">-</button>
+                            <input type="number" class="quantity-input" value="<%= item.quantity || 1 %>" 
+                                   min="1" onchange="setQuantity('<%= item.id %>', this.value)">
+                            <button class="quantity-btn" onclick="updateQuantity('<%= item.id %>', 1)">+</button>
+                        </div>
+                        
+                        <div class="item-price">
+                            <%= (item.price || 0).toLocaleString('vi-VN') %>đ
+                        </div>
+                        
+                        <button class="delete-btn" onclick="removeItem('<%= item.id %>')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                <% }) %>
+                
+                <div class="cart-summary">
+                    <div class="total-row">
+                        <span>Tổng cộng:</span>
+                        <span id="total-price">
+                            <%= (typeof total !== 'undefined' ? total : 0).toLocaleString('vi-VN') %>đ
+                        </span>
+                    </div>
+                    <button class="checkout-btn" onclick="checkout()">
+                        <i class="fas fa-credit-card"></i> Tiến hành thanh toán
+                    </button>
+                </div>
+            <% } else { %>
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>Giỏ hàng của bạn đang trống</h3>
+                    <p>Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm</p>
+                </div>
+            <% } %>
+            
+            <div class="cart-actions">
+                <a href="/products" class="continue-shopping">
+                    <i class="fas fa-arrow-left"></i> Tiếp tục mua hàng
+                </a>
+            </div>
+        </div>
+    </div>
 
-<ul>
-  <% cart.items.forEach(item => { %>
-    <li>
-      <input type="checkbox" <% if (lastAddedId === item.id) { %>checked<% } %> />
-      <strong>Sản phẩm:</strong> <%= item.productId %> — Số lượng: <%= item.quantity %>
-    </li>
-  <% }) %>
-</ul>
-
-<a href="/">⬅️ Tiếp tục mua hàng</a>
+    <script>
+        function updateQuantity(itemId, change) {
+            const input = document.querySelector(`input[onchange*="${itemId}"]`);
+            const currentValue = parseInt(input.value);
+            const newValue = Math.max(1, currentValue + change);
+            input.value = newValue;
+            setQuantity(itemId, newValue);
+        }
+        
+        function setQuantity(itemId, quantity) {
+            quantity = Math.max(1, parseInt(quantity));
+            
+            // Send AJAX request to update quantity
+            fetch('/cart/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update total price
+                    document.getElementById('total-price').textContent = 
+                        data.total.toLocaleString('vi-VN') + 'đ';
+                } else {
+                    alert('Có lỗi xảy ra khi cập nhật số lượng');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật số lượng');
+            });
+        }
+        
+        function removeItem(itemId) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                fetch('/cart/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        itemId: itemId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra khi xóa sản phẩm');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi xóa sản phẩm');
+                });
+            }
+        }
+        
+        function checkout() {
+            const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+            if (checkedItems.length === 0) {
+                alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+                return;
+            }
+            
+            // Redirect to checkout page
+            window.location.href = '/checkout';
+        }
+        
+        // Handle checkbox selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateTotal);
+            });
+        });
+        
+        function updateTotal() {
+            // Calculate total for selected items only
+            const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+            // Implementation would depend on your data structure
+        }
+    </script>
+</body>
+</html>
