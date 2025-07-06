@@ -39,6 +39,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 // Redis client
+// Chạy Redis server trước khi chạy ứng dụng này
+// docker run -d --name redis-cart -p 6379:6379 redis
 const redisClient = createClient({
   socket: {
     host: '127.0.0.1',
@@ -60,9 +62,6 @@ app.listen(PORT, () => {
   console.log(`✅ Frontend running at http://localhost:${PORT}`);
 });
 
-// API: thêm vào giỏ hàng
-// Chạy Redis server trước khi chạy ứng dụng này
-// docker run -d --name redis-cart -p 6379:6379 redis
 
 // Trang giỏ hàng
 app.get('/cart', async (req, res) => {
@@ -91,7 +90,6 @@ app.get('/cart', async (req, res) => {
     });
   }
 });
-
 
 // API: Thêm sản phẩm vào giỏ hàng
 app.post('/cart/add', async (req, res) => {
