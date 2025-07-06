@@ -1,67 +1,24 @@
 services:
-  gateway:
-    build: ./services/gateway
-    ports:
-      - "3000:3000"
-    depends_on:
-      - product-service
-      - user-service
-      - cart-service
-    networks:
-      - internal
-    environment:
-      PRODUCT_SERVICE_URL: "http://product-service:3001"
-      USER_SERVICE_URL: "http://user-service:3002"
-      CART_SERVICE_URL: "http://cart-service:3003"
-
-  product-service:
-    build: ./services/Product_Service
-    ports:
-      - "3001:3001"
-    networks:
-      - internal
-    environment:
-      PORT: "3001"
-
-  user-service:
-    build: ./services/User_Service
-    ports:
-      - "3002:3002"
-    networks:
-      - internal
-    environment:
-      PORT: "3002"
-
-  cart-service:
-    build: ./services/Cart_Service
-    ports:
-      - "3003:3003"
-    environment:
-      REDIS_URL: "redis://redis:6379"
-      PORT: "3003"
-    depends_on:
-      redis:
-        condition: service_healthy  # Đợi Redis khởi động xong
-    networks:
-      - internal
-
   redis:
-    image: "redis:alpine"
+    image: redis:latest
+    container_name: redis
     ports:
       - "6379:6379"
-    networks:
-      - internal
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 1s
-      timeout: 3s
-      retries: 30
 
-networks:
-  internal:
-    driver: bridge
+  cart_service:
+    container_name: cart_service
+    build:
+      context: ./services/Cart_Service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - redis
 
-volumes:
-  redis_data:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - cart_service

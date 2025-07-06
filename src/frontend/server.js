@@ -43,7 +43,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // docker run -d --name redis-cart -p 6379:6379 redis
 const redisClient = createClient({
   socket: {
-    host: '127.0.0.1',
+    host: 'redis',
     port: 6379
   }
 });
@@ -62,13 +62,12 @@ app.listen(PORT, () => {
   console.log(`✅ Frontend running at http://localhost:${PORT}`);
 });
 
-
 // Trang giỏ hàng
 app.get('/cart', async (req, res) => {
   const cartId = req.cookies.cartId;
 
   try {
-    const response = await fetch(`http://localhost:3001/carts/${cartId}`);
+    const response = await fetch(`http://cart_service:3001/carts/${cartId}`);
     const cart = await response.json();
 
     const cartItems = cart.items || [];
@@ -96,7 +95,7 @@ app.post('/cart/add', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { productId, quantity, shopId, name, price } = req.body;
 
-  const response = await fetch(`http://localhost:3001/carts/${cartId}/items`, {
+  const response = await fetch(`http://cart_service:3001/carts/${cartId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ productId, quantity, shopId, name, price })
@@ -122,7 +121,7 @@ app.post('/cart/update', async (req, res) => {
   const { itemId, quantity } = req.body;
 
   try {
-    const response = await fetch(`http://localhost:3001/carts/${cartId}`);
+    const response = await fetch(`http://cart_service:3001/carts/${cartId}`);
     const cart = await response.json();
 
     const item = cart.items.find(i => i.id === itemId);
@@ -131,7 +130,7 @@ app.post('/cart/update', async (req, res) => {
     item.quantity = parseInt(quantity);
     item.updatedAt = new Date().toISOString();
 
-    const updateRes = await fetch(`http://localhost:3001/carts/${cartId}`, {
+    const updateRes = await fetch(`http://cart_service:3001/carts/${cartId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cart)
@@ -153,7 +152,7 @@ app.post('/cart/remove', async (req, res) => {
   const { itemId } = req.body;
 
   try {
-    const deleteRes = await fetch(`http://localhost:3001/carts/${cartId}/items/${itemId}`, {
+    const deleteRes = await fetch(`http://cart_service:3001/carts/${cartId}/items/${itemId}`, {
       method: 'DELETE'
     });
 
