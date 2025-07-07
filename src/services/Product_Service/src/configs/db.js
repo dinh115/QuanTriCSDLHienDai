@@ -1,17 +1,20 @@
-// src/config/db.js
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const url = 'mongodb://localhost:27017';
-const dbName = 'Shopee_UDPT';
+dotenv.config(); // Load biến môi trường từ .env
 
-let db = null;
+const uri = process.env.MONGO_URI;
 
 export async function connectDB() {
-    if (db) return db;
+    try {
+        await mongoose.connect(uri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
 
-    const client = await MongoClient.connect(url);
-    db = client.db(dbName);
-    console.log('✅ Connected to MongoDB');
-    return db;
+        console.log('Connected to MongoDB via Mongoose');
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        process.exit(1);
+    }
 }
-

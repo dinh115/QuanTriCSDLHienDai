@@ -1,4 +1,4 @@
-# Dockerfile
+# Dockerfile.dev
 FROM node:18
 
 WORKDIR /app
@@ -6,8 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-COPY . .      
-
 EXPOSE 3001
 
-CMD ["npm", "start"]
+CMD ["sleep","infinity"]
+#CMD ["npm", "run", "dev"]

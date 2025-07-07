@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   gateway:
     build: ./services/gateway
@@ -10,9 +12,13 @@ services:
       - internal
 
   product-service:
-    build: ./services/Product_Service
+    build: 
+      context: ./services/Product_Service
+      dockerfile: Dockerfile
     expose:
       - "3001"
+    depends_on:
+      - mongo
     networks:
       - internal
 
@@ -20,9 +26,26 @@ services:
     build: ./services/User_Service
     expose:
       - "3002"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/USER_DATABASE
+      - PORT=3002
     networks:
       - internal
 
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - internal
+
+volumes:
+  mongo_data:
 
 networks:
   internal:
