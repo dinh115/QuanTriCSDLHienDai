@@ -25,7 +25,7 @@ class ReviewModel {
     const query = 'SELECT * FROM product_reviews_new WHERE masp = ?';
     const options = { 
       prepare: true,
-      fetchSize: 5 // Number of results per page
+      fetchSize: 6 // Number of results per page
     };
     
     if (pageState) {

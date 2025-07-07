@@ -105,3 +105,5 @@ GET http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews/r
 GET http://localhost:3003/product/{productId}/reviews/rating/{rating}?pageState={pageStateToken}
 GET http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews/images
 GET http://localhost:3003/product/{productId}/reviews/images?pageState={pageStateToken}
+
+node generate-reviews-new.js

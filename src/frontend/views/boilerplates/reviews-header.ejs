@@ -3,30 +3,72 @@
     
     <div class="rating-overview">
         <div class="overall-rating">
-            <span class="rating-score">4.8</span>
+            <span class="rating-score">4.8</span> <!-- Giá trị mặc định, sẽ được cập nhật bằng JS -->
             <span class="rating-text">trên 5</span>
         </div>
         
         <div class="stars-display">
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
         </div>
     </div>
     
     <div class="rating-filters">
         <button class="filter-btn active">Tất Cả</button>
-        <button class="filter-btn">5 Sao (954)</button>
-        <button class="filter-btn">4 Sao (58)</button>
-        <button class="filter-btn">3 Sao (24)</button>
-        <button class="filter-btn">2 Sao (8)</button>
-        <button class="filter-btn">1 Sao (14)</button>
-        <button class="filter-btn">Có Bình Luận (474)</button>
-    </div>
-    
-    <div class="media-toggle">
-        <span>Có Hình Ảnh / Video (296)</span>
+        <button class="filter-btn">5 Sao</button>
+        <button class="filter-btn">4 Sao</button>
+        <button class="filter-btn">3 Sao</button>
+        <button class="filter-btn">2 Sao</button>
+        <button class="filter-btn">1 Sao</button>
+        <button class="filter-btn">Có Hình Ảnh / Video</button>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Bắt đầu tải dữ liệu từ API'); // Kiểm tra xem mã có chạy không
+        fetch('http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews/summary')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API Data:', data); // Kiểm tra dữ liệu từ API
+
+                // Cập nhật số lượng đánh giá cho các nút lọc
+                document.querySelector('.filter-btn.active').textContent = `Tất Cả (${data.total_reviews})`;
+                document.querySelector('.filter-btn:nth-child(2)').textContent = `5 Sao (${data.rating_5})`;
+                document.querySelector('.filter-btn:nth-child(3)').textContent = `4 Sao (${data.rating_4})`;
+                document.querySelector('.filter-btn:nth-child(4)').textContent = `3 Sao (${data.rating_3})`;
+                document.querySelector('.filter-btn:nth-child(5)').textContent = `2 Sao (${data.rating_2})`;
+                document.querySelector('.filter-btn:nth-child(6)').textContent = `1 Sao (${data.rating_1})`;
+                document.querySelector('.filter-btn:nth-child(7)').textContent = `Có Hình Ảnh / Video (${data.has_images})`;
+
+                // Tính điểm đánh giá trung bình
+                const totalPoints = (1 * data.rating_1) + (2 * data.rating_2) + (3 * data.rating_3) + (4 * data.rating_4) + (5 * data.rating_5);
+                const ratingScore = (totalPoints / data.total_reviews).toFixed(1);
+                document.querySelector('.rating-score').textContent = ratingScore;
+
+                // Cập nhật hiển thị sao
+                const stars = document.querySelectorAll('.stars-display .star');
+                const fullStars = Math.floor(ratingScore);
+                const halfStar = ratingScore % 1 >= 0.5 ? 1 : 0;
+
+                stars.forEach((star, index) => {
+                    star.classList.remove('filled', 'half');
+                    if (index < fullStars) {
+                        star.classList.add('filled');
+                    } else if (index < fullStars + halfStar) {
+                        star.classList.add('half');
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching review summary:', error);
+            });
+    });
+</script>

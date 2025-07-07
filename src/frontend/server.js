@@ -2,6 +2,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,6 +111,12 @@ const sampleReviews = [
 // Reviews route
 app.get('/reviews', (req, res) => {
     res.render('review.ejs', { reviews: sampleReviews });
+});
+
+// Review form route
+app.get('/review-form', (req, res) => {
+    const username = "User #" + Math.floor(Math.random() * 100) + 1;
+    res.render('review-form.ejs',{ username });
 });
 
 // Start server
