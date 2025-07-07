@@ -174,18 +174,21 @@
               Hỗ trợ
             </a>
           </li>
-          <!-- <li class="header__navbar-item header__navbar-item--bold header__navbar-item--separate">
-                            Đăng ký
-                        </li>
-                        <li class="header__navbar-item header__navbar-item--bold">
-                            Đăng nhập
-                        </li> -->
+          <% if (!user) { %>
+          <li
+            class="header__navbar-item header__navbar-item--bold header__navbar-item--separate">
+            Đăng ký </li>
+          <li class="header__navbar-item header__navbar-item--bold">
+            <a href="/login"
+              class="header__navbar-item-link header__navbar-item--separate">Đăng
+              nhập</a> </li>
+          <% } else { %>
           <li class="header__navbar-item header__navbar-user">
             <img
               src="static/user-icon.svg"
               alt
               class="header__navbar-user-img">
-            <span class="header__navbar-user-name"> <%= username %></span>
+            <span class="header__navbar-user-name"> <%= user.username %></span>
 
             <ul class="header__navbar-user-menu">
               <li class="header__navbar-user-item">
@@ -199,10 +202,11 @@
               </li>
               <li
                 class="header__navbar-user-item header__navbar-user-item--separate">
-                <a href="#">Đăng xuất</a>
+                <a href="/logout">Đăng xuất</a>
               </li>
             </ul>
           </li>
+          <% } %>
         </ul>
       </nav>
 
