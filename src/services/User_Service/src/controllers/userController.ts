@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { Response } from 'express';
 import { authService } from '../services/authService';
 import userService from '../services/UserService';
@@ -515,12 +514,7 @@ class UserController {
 
             res.json({
                 success: true,
-                data: {
-                    userId: decoded.userId,
-                    email: decoded.email,
-                    role: decoded.role,
-                    status: decoded.status
-                }
+                data: decoded
             });
         } catch (error) {
             logger.error('Verify token controller error:', error);

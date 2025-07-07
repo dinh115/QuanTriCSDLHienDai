@@ -5,6 +5,9 @@ export interface IUser extends Document {
     _id: string;
     email: string;
     username: string;
+    phone: string;
+    address: string;
+    dateOfBirth: Date;
     password: string;
     firstName: string;
     lastName: string;
@@ -18,6 +21,9 @@ export interface JWTPayload {
     userId: string;
     email: string;
     username: string;
+    phone: string;
+    address: string;
+    dateOfBirth: Date;
     role: string;
     status: string;
 }
@@ -37,6 +43,9 @@ export interface RegisterRequest {
     password: string;
     firstName: string;
     lastName: string;
+    phone: string;
+    address: string;
+    dateOfBirth: Date;
 }
 
 export interface CreateUserRequest {
@@ -47,6 +56,9 @@ export interface CreateUserRequest {
     password?: string;
     role?: 'customer' | 'admin' | 'shop_owner';
     status?: 'active' | 'inactive';
+    phone: string;
+    address: string;
+    dateOfBirth: Date;
 }
 
 export interface UpdateUserRequest {
@@ -56,6 +68,9 @@ export interface UpdateUserRequest {
     password?: string;
     role?: 'customer' | 'admin' | 'shop_owner';
     status?: 'active' | 'inactive';
+    phone?: string;
+    address?: string;
+    dateOfBirth?: Date;
 }
 
 export interface ApiResponse<T = any> {
@@ -65,15 +80,6 @@ export interface ApiResponse<T = any> {
     message?: string;
 }
 
-export interface UserQueryOptions {
-    page?: number;
-    limit?: number;
-    status?: string;
-    role?: string;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-}
 
 export interface FindUsersOptions {
     page: number;

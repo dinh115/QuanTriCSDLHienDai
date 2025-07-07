@@ -29,8 +29,9 @@ export const authenticate = async (
         }
 
         // Use your UserService's auth verification endpoint
-        const authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-        const response = await axios.post(`${authServiceUrl}/auth/verify`, { token });
+        const authServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
+        const response = await axios.post(`${authServiceUrl}/auth/verify-token`, { token });
+
 
         if (response.data.success) {
             req.user = {
@@ -59,7 +60,7 @@ export const authenticate = async (
                     error: 'Invalid request format'
                 });
             } else {
-                console.error(chalk.bold.red('Auth service error:', error.response?.data || error.message));
+                console.error(chalk.bold.red('Auth service error:', error.response?.data ? JSON.stringify(error.response.data) : error.message));
                 res.status(503).json({
                     success: false,
                     error: 'Authentication service unavailable'

@@ -1,7 +1,9 @@
 import axios from 'axios';
 import chalk from 'chalk';
+import dotenv from 'dotenv';
 import { PurchaseItem, Purchase, CartData, PaymentMethod } from '../types';
 
+dotenv.config();
 export interface ProductValidationResponse {
     id: string;
     shopId: string;
@@ -30,7 +32,7 @@ export class ExternalServiceClient {
     private serviceToken: string;
 
     constructor() {
-        this.userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
+        this.userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
         this.productServiceUrl = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3002';
         this.paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:3003';
         this.cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:3004';

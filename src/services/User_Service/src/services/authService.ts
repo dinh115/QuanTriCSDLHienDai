@@ -63,7 +63,7 @@ class AuthService {
     user: IUser;
   }> {
     try {
-      const { email, username, password, firstName, lastName } = userData;
+      const { email, username, password, firstName, lastName, phone, address, dateOfBirth } = userData;
 
       // Check if user already exists
       const existingUsername = await User.findOne({ username: username.toLowerCase() });
@@ -87,7 +87,10 @@ class AuthService {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         role: 'customer',
-        status: 'active'
+        status: 'active',
+        phone: phone.trim(),
+        address: address.trim(),
+        dateOfBirth: dateOfBirth
       });
 
       const savedUser = await newUser.save();
@@ -171,7 +174,10 @@ class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
-      status: user.status
+      status: user.status,
+      phone: user.phone,
+      address: user.address,
+      dateOfBirth: user.dateOfBirth
     };
 
     return jwt.sign(payload, config.JWT_SECRET as any, {

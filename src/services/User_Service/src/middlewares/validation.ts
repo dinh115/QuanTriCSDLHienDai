@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';
-import { validate as uuidValidate, version as uuidVersion } from 'uuid';
+import { validate as uuidValidate } from 'uuid';
 import logger from '../config/logger';
 
 // =================== VALIDATION SCHEMAS ===================
@@ -22,15 +22,13 @@ export const registerSchema = Joi.object({
     }),
     username: Joi.string()
         .trim()
-        .alphanum()
-        .min(3)
-        .max(20)
+        .pattern(/^(?=.{3,20}$)(?!.*[_.-]{2})[a-zA-Z0-9]+([._-]?[a-zA-Z0-9]+)*$/)
         .required()
         .messages({
-            'string.alphanum': 'Username must contain only letters and numbers',
-            'string.min': 'Username must be at least 3 characters long',
-            'string.max': 'Username cannot exceed 20 characters',
-            'any.required': 'Username is required'
+            'string.pattern.base':
+                'Username cannot start or end with special characters, and cannot have consecutive special characters.',
+            'string.empty': 'Username is required.',
+            'any.required': 'Username is required.'
         }),
     password: Joi.string().min(6).required().messages({
         'string.min': 'Password must be at least 6 characters long',
@@ -45,8 +43,41 @@ export const registerSchema = Joi.object({
         'string.min': 'Last name cannot be empty',
         'string.max': 'Last name cannot exceed 50 characters',
         'any.required': 'Last name is required'
-    })
+    }),
+    phone: Joi.string()
+        .pattern(/^[\+]?[1-9][\d]{0,15}$/)
+        .required()
+        .messages({
+            'string.pattern.base': 'Please provide a valid phone number',
+            'any.required': 'Phone number is required'
+        }),
+    address: Joi.string().trim().min(1).max(200).required().messages({
+        'string.min': 'Address cannot be empty',
+        'string.max': 'Address cannot exceed 200 characters',
+        'any.required': 'Address is required'
+    }),
+    dateOfBirth: Joi.string()
+        .pattern(/^\d{4}-\d{2}-\d{2}$/)
+        .required()
+        .custom((value, helpers) => {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                return helpers.error('any.invalid', { value });
+            }
+            const now = new Date();
+            if (date > now) {
+                return helpers.error('date.max', { value });
+            }
+            return value;
+        }, 'Date Validation')
+        .messages({
+            'string.pattern.base': 'Date must be in YYYY-MM-DD format',
+            'any.required': 'Date is required',
+            'any.invalid': 'Date is invalid',
+            'date.max': 'Date cannot be in the future'
+        })
 });
+
 
 export const createUserSchema = Joi.object({
     email: Joi.string().email().required().messages({
@@ -55,15 +86,13 @@ export const createUserSchema = Joi.object({
     }),
     username: Joi.string()
         .trim()
-        .alphanum()
-        .min(3)
-        .max(20)
+        .pattern(/^(?=.{3,20}$)(?!.*[_.-]{2})[a-zA-Z0-9]+([._-]?[a-zA-Z0-9]+)*$/)
         .required()
         .messages({
-            'string.alphanum': 'Username must contain only letters and numbers',
-            'string.min': 'Username must be at least 3 characters long',
-            'string.max': 'Username cannot exceed 20 characters',
-            'any.required': 'Username is required'
+            'string.pattern.base':
+                'Username cannot start or end with special characters, and cannot have consecutive special characters.',
+            'string.empty': 'Username is required.',
+            'any.required': 'Username is required.'
         }),
     firstName: Joi.string().trim().min(1).max(50).required().messages({
         'string.min': 'First name cannot be empty',
@@ -79,11 +108,41 @@ export const createUserSchema = Joi.object({
         'string.min': 'Password must be at least 6 characters long'
     }),
     role: Joi.string().valid('customer', 'admin', 'shop_owner').optional().default('customer').messages({
-        'any.only': 'Role must be either customer, admin, or shop_owner'
+        'any.only': 'Role must be either customer, shop_owner or admin'
     }),
     status: Joi.string().valid('active', 'inactive').optional().default('active').messages({
         'any.only': 'Status must be either active or inactive'
-    })
+    }),
+    phone: Joi.string()
+        .pattern(/^[\+]?[1-9][\d]{0,15}$/)
+        .optional()
+        .messages({
+            'string.pattern.base': 'Please provide a valid phone number'
+        }),
+    address: Joi.string().trim().min(1).max(200).optional().messages({
+        'string.min': 'Address cannot be empty',
+        'string.max': 'Address cannot exceed 200 characters'
+    }),
+    dateOfBirth: Joi.string()
+        .pattern(/^\d{4}-\d{2}-\d{2}$/)
+        .required()
+        .custom((value, helpers) => {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                return helpers.error('any.invalid', { value });
+            }
+            const now = new Date();
+            if (date > now) {
+                return helpers.error('date.max', { value });
+            }
+            return value;
+        }, 'Date Validation')
+        .messages({
+            'string.pattern.base': 'Date must be in YYYY-MM-DD format',
+            'any.required': 'Date is required',
+            'any.invalid': 'Date is invalid',
+            'date.max': 'Date cannot be in the future'
+        })
 });
 
 export const updateUserSchema = Joi.object({
@@ -98,27 +157,47 @@ export const updateUserSchema = Joi.object({
     email: Joi.string().email().optional().messages({
         'string.email': 'Please provide a valid email address'
     }),
-    username: Joi.string()
-        .trim()
-        .alphanum()
-        .min(3)
-        .max(20)
-        .optional()
-        .messages({
-            'string.alphanum': 'Username must contain only letters and numbers',
-            'string.min': 'Username must be at least 3 characters long',
-            'string.max': 'Username cannot exceed 20 characters'
-        }),
     password: Joi.string().min(6).optional().messages({
         'string.min': 'Password must be at least 6 characters long'
     }),
     role: Joi.string().valid('customer', 'admin', 'shop_owner').optional().messages({
-        'any.only': 'Role must be either customer, admin, or shop_owner'
+        'any.only': 'Role must be either customer, shop_owner or admin'
     }),
     status: Joi.string().valid('active', 'inactive').optional().messages({
         'any.only': 'Status must be either active or inactive'
-    })
+    }),
+    phone: Joi.string()
+        .pattern(/^[\+]?[1-9][\d]{0,15}$/)
+        .optional()
+        .messages({
+            'string.pattern.base': 'Please provide a valid phone number'
+        }),
+    address: Joi.string().trim().min(1).max(200).optional().messages({
+        'string.min': 'Address cannot be empty',
+        'string.max': 'Address cannot exceed 200 characters'
+    }),
+    dateOfBirth: Joi.string()
+        .pattern(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .custom((value, helpers) => {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                return helpers.error('any.invalid', { value });
+            }
+            const now = new Date();
+            if (date > now) {
+                return helpers.error('date.max', { value });
+            }
+            return value;
+        }, 'Date Validation')
+        .messages({
+            'string.pattern.base': 'Date must be in YYYY-MM-DD format',
+            'any.invalid': 'Date is invalid',
+            'date.max': 'Date cannot be in the future'
+        })
+
 });
+
 
 export const tokenVerifySchema = Joi.object({
     token: Joi.string().required().messages({
@@ -126,15 +205,43 @@ export const tokenVerifySchema = Joi.object({
     })
 });
 
+/**
+ * Query parameter schema for user listing
+ */
+export const userQuerySchema = Joi.object({
+    page: Joi.number().integer().min(1).default(1).messages({
+        'number.min': 'Page must be at least 1'
+    }),
+    limit: Joi.number().integer().min(1).max(100).default(10).messages({
+        'number.min': 'Limit must be at least 1',
+        'number.max': 'Limit cannot exceed 100'
+    }),
+    status: Joi.string().valid('active', 'inactive').optional().messages({
+        'any.only': 'Status must be either active or inactive'
+    }),
+    role: Joi.string().valid('customer', 'admin', 'shop_owner').optional().messages({
+        'any.only': 'Role must be either customer, admin, or shop_owner'
+    }),
+    search: Joi.string().trim().max(100).optional().messages({
+        'string.max': 'Search term cannot exceed 100 characters'
+    }),
+    sortBy: Joi.string().valid('createdAt', 'email', 'username', 'firstName', 'lastName').default('createdAt').messages({
+        'any.only': 'Sort by must be one of: createdAt, email, username, firstName, lastName'
+    }),
+    sortOrder: Joi.string().valid('asc', 'desc').default('desc').messages({
+        'any.only': 'Sort order must be either asc or desc'
+    })
+});
+
 export const batchUsersSchema = Joi.object({
     userIds: Joi.array()
         .items(Joi.string().custom((value, helpers) => {
-            if (!isValidUUIDv4(value)) {
+            if (!isValidUUID(value)) {
                 return helpers.error('any.invalid');
             }
             return value;
         }).messages({
-            'any.invalid': 'Each user ID must be a valid UUID v4'
+            'any.invalid': 'Each user ID must be a valid UUID'
         }))
         .min(1)
         .max(100)
@@ -148,14 +255,14 @@ export const batchUsersSchema = Joi.object({
 
 // =================== UUID VALIDATION UTILITIES ===================
 /**
- * Check if a string is a valid UUID v4
+ * Check if a string is a valid UUID
  */
-export const isValidUUIDv4 = (uuid: string): boolean => {
-    return uuidValidate(uuid) && uuidVersion(uuid) === 4;
+export const isValidUUID = (uuid: string): boolean => {
+    return uuidValidate(uuid);
 };
 
 /**
- * Middleware to validate UUID v4 parameters
+ * Middleware to validate UUID parameters
  */
 export const validateUUID = (paramName: string) => {
     return (req: Request, res: Response, next: NextFunction): void => {
@@ -169,7 +276,7 @@ export const validateUUID = (paramName: string) => {
             return;
         }
 
-        if (!isValidUUIDv4(uuid)) {
+        if (!isValidUUID(uuid)) {
             logger.warn(`Invalid UUID provided for ${paramName}: ${uuid}`, {
                 ip: req.ip,
                 userAgent: req.get('User-Agent'),
@@ -178,7 +285,7 @@ export const validateUUID = (paramName: string) => {
 
             res.status(400).json({
                 success: false,
-                error: `Invalid ${paramName}. Must be a valid UUID v4`
+                error: `Invalid ${paramName}. Must be a valid UUID`
             });
             return;
         }
@@ -263,7 +370,7 @@ export const validateQueryParams = (schema: Joi.ObjectSchema) => {
 };
 
 /**
- * Middleware to ensure UUID v4 format for user IDs in request body
+ * Middleware to ensure UUID for user IDs in request body
  */
 export const validateUserIdsInBody = (req: Request, res: Response, next: NextFunction): void => {
     const { userIds } = req.body;
@@ -276,7 +383,7 @@ export const validateUserIdsInBody = (req: Request, res: Response, next: NextFun
         return;
     }
 
-    const invalidIds = userIds.filter((id: any) => !isValidUUIDv4(id));
+    const invalidIds = userIds.filter((id: any) => !isValidUUID(id));
 
     if (invalidIds.length > 0) {
         logger.warn('Invalid UUIDs in request body:', {
@@ -287,7 +394,7 @@ export const validateUserIdsInBody = (req: Request, res: Response, next: NextFun
 
         res.status(400).json({
             success: false,
-            error: 'All user IDs must be valid UUID v4 format',
+            error: 'All user IDs must be valid UUID',
             invalidIds
         });
         return;
@@ -295,34 +402,3 @@ export const validateUserIdsInBody = (req: Request, res: Response, next: NextFun
 
     next();
 };
-
-/**
- * Query parameter schema for user listing
- */
-export const userQuerySchema = Joi.object({
-    page: Joi.number().integer().min(1).default(1).messages({
-        'number.min': 'Page must be at least 1'
-    }),
-    limit: Joi.number().integer().min(1).max(100).default(10).messages({
-        'number.min': 'Limit must be at least 1',
-        'number.max': 'Limit cannot exceed 100'
-    }),
-    status: Joi.string().valid('active', 'inactive').optional().messages({
-        'any.only': 'Status must be either active or inactive'
-    }),
-    role: Joi.string().valid('customer', 'admin', 'shop_owner').optional().messages({
-        'any.only': 'Role must be either customer, admin, or shop_owner'
-    }),
-    search: Joi.string().trim().max(100).optional().messages({
-        'string.max': 'Search term cannot exceed 100 characters'
-    }),
-    sortBy: Joi.string().valid('createdAt', 'email', 'username', 'firstName', 'lastName').default('createdAt').messages({
-        'any.only': 'Sort by must be one of: createdAt, email, username, firstName, lastName'
-    }),
-    sortOrder: Joi.string().valid('asc', 'desc').default('desc').messages({
-        'any.only': 'Sort order must be either asc or desc'
-    })
-});
-
-// Export validation middleware with query params for user routes
-export const validateUserQuery = validateQueryParams(userQuerySchema);

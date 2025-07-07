@@ -88,7 +88,7 @@ const products: Product[] = [
     {
         id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
         shopId: 'd7119d2c-3488-444c-bc08-07dc24513c4b',
-        name: 'UPLIFT V2 Standing Desk',
+        name: 'UPLIFT V2 Standing Desk', // "product_1 + shopID" "shopid: user_i" i là số tăng dần của user là shop_owner
         description: 'Premium height-adjustable standing desk with memory presets and cable management',
         price: 2080000,
         stock: 12,

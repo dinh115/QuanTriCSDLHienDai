@@ -1,11 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
+
+const UUID_NAMESPACE = '3f96061a-3a25-4f89-9ae9-abc012345678';
 
 const userSchema = new Schema<IUser>({
     _id: {
         type: String,
-        default: uuidv4,
+        default: function () {
+            if (!this.username) {
+                throw new Error('username is required for UUIDv5 generation');
+            }
+            return uuidv5(this.username, UUID_NAMESPACE);
+        },
         required: true
     },
     email: {
@@ -23,7 +30,36 @@ const userSchema = new Schema<IUser>({
         minlength: 3,
         maxlength: 20
     },
-    password: {
+    phone: {
+        type: String,
+        required: true,
+        trim: true,
+        // Example valid phone data: "+84901234567", "+12025550123", "84901234567"
+        validate: {
+            validator: function (v: string) {
+                // phone regex: allows +, country code, and 8-15 digits
+                return /^\+?[1-9]\d{7,14}$/.test(v);
+            },
+            message: 'Phone number is not valid'
+        }
+    },
+    address: {
+        type: String,
+        required: true,
+        trim: true,
+        minlength: 1
+    },
+    dateOfBirth: {
+        type: Date,
+        required: true,
+        validate: {
+            validator: function (v: Date) {
+                // No future dates allowed
+                return v <= new Date();
+            },
+            message: 'Date of birth cannot be in the future'
+        }
+    }, password: {
         type: String,
         required: true,
         minlength: 6

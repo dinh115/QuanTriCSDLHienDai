@@ -1,13 +1,12 @@
 import Joi from 'joi';
 import { PurchaseStatus, PaymentMethod, ShippingMethod } from '../types';
 
-
 export const createPurchaseSchema = Joi.object({
-    userId: Joi.string().required(),
-    cartId: Joi.string().optional(),
+    userId: Joi.string().uuid().required(),
+    cartId: Joi.string().uuid().optional(),
     items: Joi.array().items(
         Joi.object({
-            productId: Joi.string().required(),
+            productId: Joi.string().uuid().required(),
             quantity: Joi.number().integer().min(1).required(),
             unitPrice: Joi.number().min(0).optional()
         })
@@ -48,7 +47,6 @@ export const createPurchaseSchema = Joi.object({
     'custom.cartOrItems': 'Either cartId or items must be provided'
 });
 
-
 export const updatePurchaseStatusSchema = Joi.object({
     status: Joi.string().valid(...Object.values(PurchaseStatus)).required(),
     trackingNumber: Joi.string().optional(),
@@ -65,7 +63,7 @@ export const queryUserPurchasesSchema = Joi.object({
 });
 
 export const queryPurchasesSchema = Joi.object({
-    userId: Joi.string().optional(),
+    userId: Joi.string().uuid().optional(),
     status: Joi.string().valid(...Object.values(PurchaseStatus)).optional(),
     paymentMethod: Joi.string().valid(...Object.values(PaymentMethod)).optional(),
     page: Joi.number().integer().min(1).default(1),

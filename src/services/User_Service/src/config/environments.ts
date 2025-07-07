@@ -17,7 +17,7 @@ export const config = {
   SERVICE_TOKEN: process.env.SERVICE_TOKEN || 'service-secret-token-123',
 
   // MongoDB
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/user-management',
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://user-mongodb:27017/user-management',
 
   // Redis
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',

@@ -134,7 +134,7 @@ export class UserService {
         email: userData.username.toLowerCase()
       });
       if (existingUsername) {
-        throw new Error('User with this email already exists');
+        throw new Error('User with this username already exists');
       }
       const existingUser = await User.findOne({
         email: userData.email.toLowerCase()
@@ -146,15 +146,19 @@ export class UserService {
 
       // Generate default password if not provided somehow
       const password = userData.password || 'defaultPassword123';
+      const hashedPassword = await bcrypt.hash(password, 12);
 
       const user = new User({
         email: userData.email.toLowerCase(),
         username: userData.username,
-        password: password,
+        password: hashedPassword,
         firstName: userData.firstName.trim(),
         lastName: userData.lastName.trim(),
         role: userData.role || 'customer',
-        status: userData.status || 'active'
+        status: userData.status || 'active',
+        phone: userData.phone || '',
+        dateOfBirth: userData.dateOfBirth || '',
+        address: userData.address || ''
       });
 
       await user.save();
@@ -177,29 +181,17 @@ export class UserService {
       }
 
       // Update fields
-      if (userData.firstName) user.firstName = userData.firstName.trim();
-      if (userData.lastName) user.lastName = userData.lastName.trim();
+      if (userData.firstName !== undefined) user.firstName = userData.firstName.trim();
+      if (userData.lastName !== undefined) user.lastName = userData.lastName.trim();
+      if (userData.email !== undefined) user.email = userData.email.toLowerCase();
+      if (userData.password !== undefined) user.password = await bcrypt.hash(userData.password, 12);;
+      if (userData.role !== undefined) user.role = userData.role;
+      if (userData.status !== undefined) user.status = userData.status;
+      if (userData.phone !== undefined) user.phone = userData.phone.trim();
+      if (userData.address !== undefined) user.address = userData.address.trim();
+      if (userData.dateOfBirth !== undefined) user.dateOfBirth = userData.dateOfBirth;
 
-      if (userData.email) {
-        // Check if new email already exists
-        const existingUser = await User.findOne({
-          email: userData.email.toLowerCase(),
-          _id: { $ne: id }
-        });
 
-        if (existingUser) {
-          throw new Error('Email already in use');
-        }
-
-        user.email = userData.email.toLowerCase();
-      }
-
-      if (userData.password) {
-        user.password = userData.password;
-      }
-
-      if (userData.role) user.role = userData.role;
-      if (userData.status) user.status = userData.status;
 
       await user.save();
 
