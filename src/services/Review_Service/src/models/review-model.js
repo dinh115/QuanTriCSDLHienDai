@@ -12,7 +12,8 @@ class ReviewModel {
   //   }
   // }
   static async getReviewsSummaryByProductId(productId) {
-    const query = 'SELECT * FROM product_review_summary WHERE masp = ?';
+    //const query = 'SELECT * FROM product_review_summary WHERE masp = ?';
+    const query = 'SELECT * FROM product_review_summary_test WHERE masp = ?';
     try {
       const result = await client.execute(query, [productId], { prepare: true });
       return result.rows;
@@ -22,7 +23,8 @@ class ReviewModel {
     }
   }
   static async getReviewsByProductId(productId, pageState) {
-    const query = 'SELECT * FROM product_reviews_new WHERE masp = ?';
+    //const query = 'SELECT * FROM product_reviews_new WHERE masp = ?';
+    const query = 'SELECT * FROM product_reviews_test WHERE masp = ?';
     const options = { 
       prepare: true,
       fetchSize: 6 // Number of results per page
@@ -44,7 +46,8 @@ class ReviewModel {
     }
   }
   static async getReviewsByRating(productId, rating, pageState) {
-    const query = 'SELECT * FROM product_reviews_new WHERE masp = ? AND rating = ? ALLOW FILTERING';
+    //const query = 'SELECT * FROM product_reviews_new WHERE masp = ? AND rating = ? ALLOW FILTERING';
+    const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND rating = ? ALLOW FILTERING';
     const options = {
       prepare: true,
       fetchSize: 5
@@ -66,7 +69,7 @@ class ReviewModel {
     }
   }
   static async getReviewsWithImages(productId, pageState) {
-    const query = 'SELECT * FROM product_reviews_new WHERE masp = ? AND has_images = true ALLOW FILTERING';
+    const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND has_images = true ALLOW FILTERING';
     const options = {
       prepare: true,
       fetchSize: 5
@@ -95,9 +98,9 @@ class ReviewModel {
     let query, params;
     
     if (hasImages) {
-      // Include images field when images exist
+      // Include images field when images exist product_reviews_test product_reviews_new
       query = `
-        INSERT INTO product_reviews_new (
+        INSERT INTO product_reviews_test (
           masp, mauser, username, rating, review_date,
           phanloai, chatluong, mota_dung, noidung,
           images, has_images, has_reply
@@ -121,7 +124,7 @@ class ReviewModel {
     } else {
       // Exclude images field when no images
       query = `
-        INSERT INTO product_reviews_new (
+        INSERT INTO product_reviews_test (
           masp, mauser, username, rating, review_date,
           phanloai, chatluong, mota_dung, noidung,
           has_images, has_reply
@@ -158,7 +161,7 @@ class ReviewModel {
   try {
     // Update total_reviews
     await client.execute(
-      'UPDATE product_review_summary SET total_reviews = total_reviews + 1 WHERE masp = ?',
+      'UPDATE product_review_summary_test SET total_reviews = total_reviews + 1 WHERE masp = ?',
       [masp],
       { prepare: true }
     );
@@ -166,7 +169,7 @@ class ReviewModel {
     // Update rating_X (e.g., rating_5)
     const ratingColumn = `rating_${rating}`;
     await client.execute(
-      `UPDATE product_review_summary SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
+      `UPDATE product_review_summary_test SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
       [masp],
       { prepare: true }
     );
@@ -174,7 +177,7 @@ class ReviewModel {
     // Update has_images (only if applicable)
     if (hasImages) {
       await client.execute(
-        'UPDATE product_review_summary SET has_images = has_images + 1 WHERE masp = ?',
+        'UPDATE product_review_summary_test SET has_images = has_images + 1 WHERE masp = ?',
         [masp],
         { prepare: true }
       );

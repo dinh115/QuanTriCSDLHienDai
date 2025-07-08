@@ -3,13 +3,34 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
+import multer from 'multer'; // Import multer
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 
+
+
+// --- Multer Configuration for File Uploads ---
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // Save files to the 'public/images' directory
+    cb(null, path.join(__dirname, 'public', 'images'));
+  },
+  filename: function (req, file, cb) {
+    // Create a unique filename to prevent overwriting
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const upload = multer({ storage: storage });
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Middleware to parse JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from /public
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,106 +38,208 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serve index.html for root
 app.get('/', (req, res) => {
     const username = "User #" + Math.floor(Math.random() * 100) + 1;
-    res.render('home.ejs', { username });
+    const exampleProductId = "22417326-f9fd-4954-9ead-3ceafd52f3d6";
+    res.render('home.ejs', { username, exampleProductId });
 });
 
-// Sample review data
-const sampleReviews = [
-    {
-        id: 1,
-        username: "shes00r*th",
-        rating: 5,
-        date: "2023-07-30 14:45",
-        title: "Chất lượng sản phẩm rất chắc chắn. Nên mua mọi người à",
-        content: "Tình nàng nổi bật nhờ gọn liền mang trong túi cùng máy lính. Giao hàng nhanh, giá rẻ nhất so với các shop khác. Siêu tin Eo minh hỏi giá 150 k lận. Nhỏ gọn, mở ra thu vào nhanh chóng, giá chắc chắn đúng rất ok. Dùng xong thu lại dễ vào túi đựng máy qua tiện.",
-        response: {
-            title: "Phản Hồi Của Người Bán",
-            content: "Shop Cảm ơn bạn đã đánh giá 5* cho Shop. hãy tiếp tục ủng hộ Shop nhé 😍"
-        },
-        images: [
-            "/images/review1-1.jpg",
-            "/images/review1-2.jpg"
-        ]
-    },
-    {
-        id: 2,
-        username: "minh*****94",
-        rating: 5,
-        date: "2023-08-15 09:22",
-        title: "Sản phẩm tuyệt vời, đóng gói cẩn thận",
-        content: "Mình rất hài lòng với sản phẩm này. Chất lượng tốt, giao hàng nhanh. Shop tư vấn nhiệt tình, đóng gói rất cẩn thận. Sẽ ủng hộ shop lâu dài.",
-        response: {
-            title: "Phản Hồi Của Người Bán",
-            content: "Cảm ơn bạn đã tin tưởng shop. Chúc bạn sử dụng sản phẩm hiệu quả nhé! 🥰"
-        },
-        images: [
-            "/images/review2-1.jpg"
-        ]
-    },
-    {
-        id: 3,
-        username: "thanh***le",
-        rating: 4,
-        date: "2023-08-10 16:30",
-        title: "Sản phẩm ok, giao hàng hơi chậm",
-        content: "Sản phẩm đúng như mô tả, chất lượng tốt. Tuy nhiên giao hàng hơi chậm so với dự kiến. Nhìn chung vẫn hài lòng với sản phẩm.",
-        response: null,
-        images: []
-    },
-    {
-        id: 4,
-        username: "hong*****99",
-        rating: 5,
-        date: "2023-08-05 11:15",
-        title: "Chất lượng vượt mong đợi",
-        content: "Ban đầu mình còn lo lắng về chất lượng nhưng khi nhận được hàng thì thật sự bất ngờ. Sản phẩm rất chắc chắn, đẹp hơn trong hình. Giá cả hợp lý.",
-        response: {
-            title: "Phản Hồi Của Người Bán",
-            content: "Shop rất vui khi bạn hài lòng với sản phẩm. Hẹn gặp lại bạn ở những đơn hàng tiếp theo nhé! 💕"
-        },
-        images: [
-            "/images/review4-1.jpg",
-            "/images/review4-2.jpg",
-            "/images/review4-3.jpg"
-        ]
-    },
-    {
-        id: 5,
-        username: "duc****08",
-        rating: 5,
-        date: "2023-07-28 20:45",
-        title: "Rất hài lòng, sẽ mua lại",
-        content: "Đây là lần thứ 2 mình mua ở shop này. Lần đầu đã rất hài lòng nên lần này tiếp tục ủng hộ. Sản phẩm chất lượng, giá cả phải chăng.",
-        response: {
-            title: "Phản Hồi Của Người Bán",
-            content: "Cảm ơn bạn đã là khách hàng thân thiết của shop. Shop sẽ luôn mang đến những sản phẩm tốt nhất! 🌟"
-        },
-        images: []
-    },
-    {
-        id: 6,
-        username: "linh***03",
-        rating: 4,
-        date: "2023-07-25 14:20",
-        title: "Sản phẩm đẹp, đóng gói kỹ càng",
-        content: "Mình đặt hàng vào tối thứ 6, thứ 2 đã nhận được rồi. Giao hàng nhanh, đóng gói cẩn thận. Sản phẩm đúng như hình, chất lượng tốt.",
-        response: null,
-        images: [
-            "/images/review6-1.jpg"
-        ]
-    }
-];
+// Reviews route - initial load
+app.get('/reviews', async (req, res) => {
+    const apiUrl = 'http://localhost:3003/product/c28d7705-5e0f-482a-8bbb-416780e42c1d/reviews';
 
-// Review
-// Reviews route
-app.get('/reviews', (req, res) => {
-    res.render('review.ejs', { reviews: sampleReviews });
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        res.render('review.ejs', { 
+            reviews, 
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).send("Lỗi khi tải đánh giá");
+    }
+});
+
+// API endpoint for pagination with filters
+app.get('/reviews/:productId', async (req, res) => {
+    const { productId } = req.params; // Get productId from URL
+    const apiUrl = `http://localhost:3003/product/${productId}/reviews`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format (this logic remains the same)
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        // Pass productId to the template
+        res.render('review.ejs', {
+            productId, // Pass the ID to the view
+            reviews,
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).send("Lỗi khi tải đánh giá");
+    }
+});
+
+// API endpoint for pagination with filters (MODIFIED)
+app.get('/api/reviews/:productId', async (req, res) => {
+    const { productId } = req.params; // Get productId from URL
+    const pageState = req.query.pageState;
+    const filter = req.query.filter;
+
+    let apiUrl = `http://localhost:3003/product/${productId}/reviews`;
+
+    // Apply filter to URL (this logic remains the same)
+    if (filter && filter !== 'all') {
+        if (filter.startsWith('rating-')) {
+            const rating = filter.split('-')[1];
+            apiUrl += `/rating/${rating}`;
+        } else if (filter === 'images') {
+            apiUrl += '/images';
+        }
+    }
+
+    // Add pagination if provided
+    if (pageState) {
+        apiUrl += `?pageState=${pageState}`;
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format (this logic remains the same)
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        res.json({
+            reviews,
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage,
+            filter: filter || 'all'
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).json({ error: "Lỗi khi tải đánh giá" });
+    }
 });
 
 // Review form route
-app.get('/review-form', (req, res) => {
+// app.get('/review-form', (req, res) => {
+//     const username = "User #" + Math.floor(Math.random() * 100) + 1;
+//     res.render('review-form.ejs', { username });
+// });
+
+// MODIFIED: Review form route is now dynamic to get the product ID
+app.get('/product/:productId/review-form', (req, res) => {
+    const { productId } = req.params;
     const username = "User #" + Math.floor(Math.random() * 100) + 1;
-    res.render('review-form.ejs',{ username });
+    // Pass the productId to the form template
+    res.render('review-form.ejs', { username, productId });
+});
+
+
+// NEW: Route to handle the review form submission with file uploads
+app.post('/product/:productId/reviews', upload.array('images', 5), async (req, res) => {
+    const { productId } = req.params;
+    
+    // Extract text data from the form body
+    const { rating, phanloai, chatluong, mota_dung, noidung } = req.body;
+    
+    // Get the relative paths of uploaded images provided by multer
+    const imagePaths = req.files ? req.files.map(file => `/images/${file.filename}`) : [];
+
+    // Construct the payload for your backend API
+    const payload = {
+        mauser: "dda14db3-f64e-4c66-bc60-e02b061761b2", // session dummy
+        username: "username", // session dummy
+        rating: parseInt(rating, 10), // Ensure rating is a number
+        phanloai,
+        chatluong,
+        mota_dung,
+        noidung,
+        images: imagePaths
+    };
+
+    try {
+        // Send the composed data to your backend API
+        const apiResponse = await fetch(`http://localhost:3003/product/${productId}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            throw new Error(`Backend API Error: ${apiResponse.status} - ${errorText}`);
+        }
+        
+        // After successful submission, redirect the user to see their new review
+        console.log('Review submitted successfully!');
+        res.redirect(`/reviews/${productId}`);
+
+    } catch (error) {
+        console.error('Error submitting review to backend:', error);
+        res.status(500).send("Lỗi khi gửi đánh giá.");
+    }
 });
 
 // Start server
