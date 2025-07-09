@@ -19,7 +19,7 @@ RUN npm run build
 RUN npm prune --production
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3000
 
 # Run as non-root user
 USER node
