@@ -1,34 +1,54 @@
 import Product from './product_schema.js';
 
-export async function getAllProducts(filters = {}) {
+export async function getAllProducts(filters = {}, pagination = {}, sorting = {}) {
     try {
         const query = {};
-        
-        // Filter by shopId if provided
-        if (filters.shopId) {
-            query.shopId = filters.shopId;
+
+        // Filters
+        if (filters.shopId) query.shopId = filters.shopId;
+        if (filters.status) query.status = filters.status;
+        if (filters.category) query.category = filters.category;
+        if (filters.subcategory) query.subcategory = filters.subcategory;
+        if (filters.brand) query.brand = filters.brand;
+
+        if (filters.inStock === 'true') {
+            query.stock = { $gt: 0 };
         }
-        
-        // Filter by status if provided
-        if (filters.status) {
-            query.status = filters.status;
+
+        if (filters.minPrice || filters.maxPrice) {
+            query.price = {};
+            if (filters.minPrice) query.price.$gte = parseFloat(filters.minPrice);
+            if (filters.maxPrice) query.price.$lte = parseFloat(filters.maxPrice);
         }
-        
-        // Filter by category if provided
-        if (filters.category) {
-            query.category = filters.category;
-        }
-        
-        // Text search
+
         if (filters.search) {
-            query.$text = { $search: filters.search };
+            query.$or = [
+                { name: { $regex: filters.search, $options: 'i' } },
+                { description: { $regex: filters.search, $options: 'i' } },
+                { tags: { $elemMatch: { $regex: filters.search, $options: 'i' } } }
+            ];
         }
-        
-        return await Product.find(query).sort({ createdAt: -1 });
+
+        // Sorting
+        const sortField = sorting.sortBy || 'createdAt';
+        const sortDirection = sorting.sortOrder === 'asc' ? 1 : -1;
+        const sortOption = { [sortField]: sortDirection };
+
+        // Pagination
+        const page = pagination.page || 1;
+        const limit = pagination.limit || 10;
+        const skip = (page - 1) * limit;
+
+        const [products, total] = await Promise.all([
+            Product.find(query).sort(sortOption).skip(skip).limit(limit),
+            Product.countDocuments(query)
+        ]);
+
+        return { products, total };
     } catch (error) {
         throw new Error(`Error fetching products: ${error.message}`);
     }
-}
+};
 
 export async function findProductById(id) {
     try {

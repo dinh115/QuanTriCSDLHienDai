@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   gateway:
     build: ./services/gateway
@@ -15,8 +13,8 @@ services:
     build: 
       context: ./services/Product_Service
       dockerfile: Dockerfile
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     depends_on:
       - mongo
     networks:
@@ -24,8 +22,8 @@ services:
 
   user-service:
     build: ./services/User_Service
-    expose:
-      - "3002"
+    ports:
+      - "3002:3002"
     depends_on:
       - mongo
     environment:
@@ -34,8 +32,63 @@ services:
     networks:
       - internal
 
+  purchase-service:
+    build: ./services/Purchase_Service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/purchase_service
+      - USER_SERVICE_URL=http://user-service:3002
+      - PRODUCT_SERVICE_URL=http://product-service:3001
+      - PAYMENT_SERVICE_URL=http://payment-service:3003
+      - CART_SERVICE_URL=http://cart-service:3004
+      - VOUCHER_SERVICE_URL=http://voucher-service:3005
+      - DEFAULT_SHIPPING_RATE=15000
+      - EXPRESS_SHIPPING_RATE=30000
+      - FREE_SHIPPING_THRESHOLD=100000
+    depends_on:
+      - mongo
+      - user-service
+      - product-service
+      - payment-service
+      - cart-service
+      # - voucher-service
+    networks:
+      - internal
+
+  payment-service:
+    build: ./services/Payment_Service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+    networks:
+      - internal
+
+  cart-service:
+    build: ./services/Cart_Service_MockUp
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+    networks:
+      - internal
+
+  # voucher-service:
+  #   build: ./services/Voucher_Service
+  #   ports:
+  #     - "3005:3005"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3005
+  #   networks:
+  #     - internal
+
   mongo:
-    image: mongo:6.0
+    image: mongo:6.0  # hoặc 7.0 tùy bạn chọn
     container_name: mongo
     ports:
       - "27017:27017"

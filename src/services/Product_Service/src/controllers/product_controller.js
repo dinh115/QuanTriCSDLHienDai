@@ -3,18 +3,58 @@ import * as ProductModel from '../models/product_model.js';
 // Get all products with filters
 export async function getProducts(req, res) {
     try {
+        const {
+            shopId,
+            status,
+            category,
+            subcategory,
+            brand,
+            search,
+            minPrice,
+            maxPrice,
+            inStock,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            page = '1',
+            limit = '10'
+        } = req.query;
+
         const filters = {
-            shopId: req.query.shopId,
-            status: req.query.status,
-            category: req.query.category,
-            search: req.query.search
+            shopId,
+            status,
+            category,
+            subcategory,
+            brand,
+            search,
+            minPrice,
+            maxPrice,
+            inStock
         };
-        
-        const products = await ProductModel.getAllProducts(filters);
+
+        const pagination = {
+            page: parseInt(page),
+            limit: parseInt(limit)
+        };
+
+        const sorting = {
+            sortBy,
+            sortOrder
+        };
+
+        const { products, total } = await ProductModel.getAllProducts(filters, pagination, sorting);
+
+        const totalPages = Math.ceil(total / pagination.limit);
+
         res.json({
             success: true,
             data: products,
-            count: products.length
+            pagination: {
+                currentPage: pagination.page,
+                totalPages,
+                totalProducts: total,
+                hasNextPage: pagination.page < totalPages,
+                hasPrevPage: pagination.page > 1
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -22,7 +62,8 @@ export async function getProducts(req, res) {
             message: error.message
         });
     }
-}
+};
+
 
 // Get single product by ID
 export async function getProductById(req, res) {
