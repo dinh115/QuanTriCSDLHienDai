@@ -1,5 +1,14 @@
-
 services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  cart_service:
+    container_name: cart_service
+    build:
+      context: ./services/Cart_Service
   # gateway:
   #   build: ./services/gateway
   #   ports:
@@ -68,15 +77,14 @@ services:
     networks:
       - internal
 
-  cart-service:
-    build: ./services/Cart_Service_MockUp
+  cart_service:
+    container_name: cart_service
+    build:
+      context: ./services/Cart_Service
     ports:
       - "3004:3004"
-    environment:
-      - NODE_ENV=production
-      - PORT=3004
-    networks:
-      - internal
+    depends_on:
+      - redis
 
   # voucher-service:
   #   build: ./services/Voucher_Service
@@ -97,6 +105,15 @@ services:
       - mongo_data:/data/db
     networks:
       - internal
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - cart_service
 
 volumes:
   mongo_data:

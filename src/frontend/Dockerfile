@@ -1,20 +1,17 @@
-# Use an official Node.js runtime as the base image
+# Dùng Node.js base image nhẹ
 FROM node:18-alpine
 
-# Set working directory
+# Đặt thư mục làm việc trong container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+# Copy toàn bộ mã nguồn vào container
 COPY . .
 
-# Expose the port the app runs on (change if your app uses a different port)
-EXPOSE 3000
+# Cài đặt dependencies
+RUN npm install
 
-# Start the server
-CMD ["npm", "start"]
+# Mở port 5000
+EXPOSE 5000
+
+# Chạy ứng dụng Node.js trực tiếp
+CMD ["node", "server.js"]
