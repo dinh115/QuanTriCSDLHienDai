@@ -1,9 +1,16 @@
+import fs from 'fs';
+import path from 'path';
 import winston from 'winston';
-import { config } from './environments'
+import { config } from './environments';
+
+const logDir = path.resolve('logs');
+
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+}
 
 const { combine, timestamp, errors, json, printf, colorize } = winston.format;
 
-// Custom format for console output
 const consoleFormat = printf(({ level, message, timestamp, stack }) => {
     return `${timestamp} [${level}]: ${stack || message}`;
 });
@@ -20,7 +27,6 @@ const logger = winston.createLogger({
         environment: config.NODE_ENV
     },
     transports: [
-        // Write all logs to console
         new winston.transports.Console({
             format: combine(
                 colorize(),
@@ -31,18 +37,17 @@ const logger = winston.createLogger({
     ],
 });
 
-// Add file transports for production
 if (config.NODE_ENV === 'production') {
     logger.add(new winston.transports.File({
-        filename: 'logs/error.log',
+        filename: path.join(logDir, 'error.log'),
         level: 'error',
-        maxsize: 5242880, // 5MB
+        maxsize: 5242880,
         maxFiles: 5,
     }));
 
     logger.add(new winston.transports.File({
-        filename: 'logs/combined.log',
-        maxsize: 5242880, // 5MB
+        filename: path.join(logDir, 'combined.log'),
+        maxsize: 5242880,
         maxFiles: 5,
     }));
 }

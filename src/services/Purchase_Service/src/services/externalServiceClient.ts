@@ -1,9 +1,9 @@
 import axios from 'axios';
-import chalk from 'chalk';
 import dotenv from 'dotenv';
 import { PurchaseItem, Purchase, CartData, PaymentMethod } from '../types';
 
 dotenv.config();
+
 export interface ProductValidationResponse {
     id: string;
     shopId: string;
@@ -37,7 +37,6 @@ export class ExternalServiceClient {
         this.paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:3003';
         this.cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:3004';
 
-        // Service-to-service authentication token
         this.serviceToken = process.env.SERVICE_TOKEN || 'service-secret-token-123';
     }
 
@@ -56,19 +55,19 @@ export class ExternalServiceClient {
             return response.data.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                console.error(chalk.bold.red('Axios error response:'), {
+                console.error('Axios error response:', {
                     status: error.response?.status,
                     data: error.response?.data,
                     headers: error.response?.headers,
                 });
             } else {
-                console.error(chalk.bold.red('Unexpected error:'), error);
+                console.error('Unexpected error:', error);
             }
 
             throw new Error('Failed to validate user');
         }
-
     }
+
     async getCartData(cartId: string): Promise<CartData> {
         try {
             const response = await axios.get(`${this.cartServiceUrl}/carts/${cartId}`);
@@ -85,8 +84,7 @@ export class ExternalServiceClient {
         try {
             await axios.delete(`${this.cartServiceUrl}/carts/${cartId}/items`);
         } catch (error) {
-            console.error(chalk.bold.red('Failed to clear cart:'), error);
-            // Non-critical error, don't throw
+            console.error('Failed to clear cart:', error);
         }
     }
 
@@ -97,7 +95,6 @@ export class ExternalServiceClient {
                 productIds
             });
             const validProducts: ProductValidationResponse[] = response.data;
-            //console.log(chalk.bgWhite(JSON.stringify(validProducts, null, 2)));
 
             return items.map(item => {
                 const product = validProducts.find(p => p.id === item.productId);
@@ -129,7 +126,6 @@ export class ExternalServiceClient {
     async processPayment(purchase: Purchase, paymentToken?: string): Promise<void> {
         try {
             if (purchase.paymentMethod === PaymentMethod.COD) {
-                // COD payments are processed on delivery
                 return;
             }
 
@@ -142,7 +138,7 @@ export class ExternalServiceClient {
                 billingAddress: purchase.billingAddress || purchase.shippingAddress
             });
         } catch (error) {
-            console.error(chalk.bold.red('Failed to process payment:'), error);
+            console.error('Failed to process payment:', error);
             throw new Error('Payment processing failed');
         }
     }

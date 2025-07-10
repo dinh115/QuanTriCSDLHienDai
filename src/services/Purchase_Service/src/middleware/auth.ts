@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
-import chalk from 'chalk';
 
 export interface AuthenticatedRequest extends Request {
     user?: {
@@ -28,10 +27,8 @@ export const authenticate = async (
             return;
         }
 
-        // Use your UserService's auth verification endpoint
         const authServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
         const response = await axios.post(`${authServiceUrl}/auth/verify-token`, { token });
-
 
         if (response.data.success) {
             req.user = {
@@ -60,14 +57,14 @@ export const authenticate = async (
                     error: 'Invalid request format'
                 });
             } else {
-                console.error(chalk.bold.red('Auth service error:', error.response?.data ? JSON.stringify(error.response.data) : error.message));
+                console.error('Auth service error:', error.response?.data ? JSON.stringify(error.response.data) : error.message);
                 res.status(503).json({
                     success: false,
                     error: 'Authentication service unavailable'
                 });
             }
         } else {
-            console.error(chalk.bold.red('Authentication error:', error));
+            console.error('Authentication error:', error);
             res.status(500).json({
                 success: false,
                 error: 'Internal authentication error'
@@ -115,7 +112,6 @@ export const authorizeOwnerOrAdmin = (
     const requestingUserId = req.user.userId;
     const userRole = req.user.role;
 
-    // Allow if user is admin or requesting their own data
     if (userRole === 'admin' || requestingUserId === userId) {
         next();
     } else {
@@ -125,7 +121,6 @@ export const authorizeOwnerOrAdmin = (
         });
     }
 };
-
 
 export const authorizeShopOwnerOrAdmin = (
     req: AuthenticatedRequest,
@@ -144,16 +139,14 @@ export const authorizeShopOwnerOrAdmin = (
 
     if (userRole === 'admin' || userRole === 'shop_owner') {
         next();
-        return;
+    } else {
+        res.status(403).json({
+            success: false,
+            error: 'Access denied - shop owner or admin required'
+        });
     }
-
-    res.status(403).json({
-        success: false,
-        error: 'Access denied - shop owner or admin required'
-    });
 };
 
-// Additional middleware for purchase-specific authorization
 export const authorizePurchaseAccess = (
     req: AuthenticatedRequest,
     res: Response,
@@ -167,12 +160,9 @@ export const authorizePurchaseAccess = (
         return;
     }
 
-    // For routes with purchase ID, we'll need to check ownership in the controller
-    // This middleware just ensures the user is authenticated
     next();
 };
 
-// Middleware to check if user can modify purchase status
 export const authorizePurchaseStatusUpdate = (
     req: AuthenticatedRequest,
     res: Response,
@@ -189,13 +179,11 @@ export const authorizePurchaseStatusUpdate = (
     const userRole = req.user.role;
     const { status } = req.body;
 
-    // Admins and shop owner can update to any status
     if (userRole === 'admin' || userRole === 'shop_owner') {
         next();
         return;
     }
 
-    // Customers can only cancel their own pending purchases
     if (userRole === 'customer' && status === 'cancelled') {
         next();
         return;
@@ -205,5 +193,4 @@ export const authorizePurchaseStatusUpdate = (
         success: false,
         error: 'Insufficient permissions to update purchase status'
     });
-
 };

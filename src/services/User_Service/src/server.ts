@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
-import chalk from 'chalk';
 
 import logger from './config/logger';
 import userRoutes from './routes/user';
@@ -29,8 +28,8 @@ app.use(cors());
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: config.NODE_ENV === 'production' ? 100 : 1000, // limit each IP
+    windowMs: 15 * 60 * 1000,
+    max: config.NODE_ENV === 'production' ? 100 : 1000,
     message: {
         success: false,
         error: 'Too many requests from this IP, please try again later.'
@@ -40,8 +39,8 @@ const limiter = rateLimit({
 });
 
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: config.NODE_ENV === 'production' ? 5 : 1000, // limit each IP to 5 requests per windowMs for auth routes
+    windowMs: 15 * 60 * 1000,
+    max: config.NODE_ENV === 'production' ? 5 : 1000,
     message: {
         success: false,
         error: 'Too many authentication attempts, please try again later.'
@@ -54,10 +53,7 @@ app.use(limiter);
 
 // Compression middleware
 app.use(compression());
-
 app.use(express.json());
-
-
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware
@@ -77,7 +73,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// API routes with UUID validation middleware for user ID parameters
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/internal', internalRoutes);
@@ -94,8 +90,6 @@ app.use('*', (req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-
-
 // Start server
 const startServer = async () => {
     try {
@@ -105,12 +99,8 @@ const startServer = async () => {
             logger.info(`Server running on port ${config.PORT} in ${config.NODE_ENV} mode`);
         });
 
-        // Handle server errors
         server.on('error', (error: any) => {
-            if (error.syscall !== 'listen') {
-                throw error;
-            }
-
+            if (error.syscall !== 'listen') throw error;
             switch (error.code) {
                 case 'EACCES':
                     logger.error(`Port ${config.PORT} requires elevated privileges`);
@@ -127,17 +117,17 @@ const startServer = async () => {
 
         // Graceful shutdown
         process.on('SIGTERM', async () => {
-            console.log(chalk.bgGreenBright('SIGTERM received, shutting down gracefully'));
+            console.log('SIGTERM received, shutting down gracefully');
             await redisConnection.disconnect();
             process.exit(0);
         });
 
         process.on('SIGINT', async () => {
-            console.log(chalk.bgGreenBright('SIGINT received, shutting down gracefully'));
+            console.log('SIGINT received, shutting down gracefully');
             await redisConnection.disconnect();
-
             process.exit(0);
         });
+
         return server;
 
     } catch (error) {

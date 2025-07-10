@@ -6,12 +6,12 @@ import { connectDatabase } from './config/mongo';
 import purchaseRoutes from './routes/purchase';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
-import chalk from 'chalk';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 // Middleware
 app.use(helmet());
 app.use(cors());
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-    console.log(chalk.bgBlueBright.bold(`${new Date().toISOString()} - ${req.method} ${req.path}`));
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
 });
 
@@ -80,12 +80,12 @@ const startServer = async (): Promise<void> => {
         await connectDatabase();
 
         app.listen(PORT, () => {
-            console.log(chalk.bold.yellow(`🚀 Enhanced Purchase Service running on port ${PORT}`));
-            console.log(chalk.bold.yellow(`📊 Health check: http://localhost:${PORT}/health`));
-            console.log(chalk.bold.yellow(`ℹ️  API info: http://localhost:${PORT}/api/info`));
+            console.log(`🚀 Purchase Service running on port ${PORT}`);
+            console.log(`📊 Health check: http://localhost:${PORT}/health`);
+            console.log(`ℹ️  API info: http://localhost:${PORT}/api/info`);
         });
     } catch (error) {
-        console.error(chalk.bold.red('Failed to start server:', error));
+        console.error('Failed to start server:', error);
         process.exit(1);
     }
 };
@@ -94,11 +94,11 @@ startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-    console.log(chalk.bgGreenBright('SIGTERM received, shutting down gracefully'));
+    console.log('SIGTERM received, shutting down gracefully');
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log(chalk.bgGreenBright('SIGINT received, shutting down gracefully'));
+    console.log('SIGINT received, shutting down gracefully');
     process.exit(0);
 });

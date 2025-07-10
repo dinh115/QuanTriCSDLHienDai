@@ -1,0 +1,58 @@
+<div class="review-item">
+    <div class="review-header">
+        <div class="user-avatar">
+            <img src="/images/default-avatar.png" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="avatar-placeholder">
+                <%= review.username.charAt(0).toUpperCase() %>
+            </div>
+        </div>
+        
+        <div class="review-info">
+            <div class="username"><%= review.username %></div>
+            <div class="review-meta">
+                <div class="stars">
+                    <% for(let i = 1; i <= 5; i++) { %>
+                        <span class="star <%= i <= review.rating ? 'filled' : '' %>">★</span>
+                    <% } %>
+                </div>
+                <div class="review-date"><%= review.date %></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="review-content">
+        <!-- <div class="review-title"><%= review.title %></div> -->
+        <div class="review-title">
+            <div><strong>Chất lượng sản phẩm:</strong> <%= review.chatluong %></div>
+            <div><strong>Chất lượng đúng với mô tả:</strong> <%= review.mota_dung %></div>
+            <div><strong>Phân loại sản phẩm:</strong> <%= review.phanloai %></div>
+        </div>
+        <div class="review-text"><%= review.content %></div>
+        
+        <% if(review.images && review.images.length > 0) { %>
+            <div class="review-images">
+                <% review.images.forEach((image, index) => { %>
+                    <div class="image-container">
+                        <img src="<%= image %>" alt="Review image <%= index + 1 %>"
+                            onload="this.nextElementSibling.style.display='none';" 
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder">
+                            <% if(index === 0) { %>
+                                📷
+                            <% } else { %>
+                                🖼️
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+        
+        <% if(review.response) { %>
+            <div class="seller-response">
+                <div class="response-header"><%= review.response.title %></div>
+                <div class="response-content"><%= review.response.content %></div>
+            </div>
+        <% } %>
+    </div>
+</div>

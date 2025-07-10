@@ -1,0 +1,130 @@
+<%- include('boilerplates/header-review-form') %>
+
+<form id="reviewForm" class="review-form-container" method="POST" action="/product/<%= productId %>/reviews" enctype="multipart/form-data">
+    <div class="review-form">
+    
+        <div class="rating-section">
+            <h3 class="section-title">Chất lượng sản phẩm</h3>
+            <div class="star-rating" id="starRating">
+                <span class="star" data-rating="1">⭐</span>
+                <span class="star" data-rating="2">⭐</span>
+                <span class="star" data-rating="3">⭐</span>
+                <span class="star" data-rating="4">⭐</span>
+                <span class="star" data-rating="5">⭐</span>
+            </div>
+            <p class="rating-text">Nhấn vào ngôi sao để đánh giá sản phẩm này</p>
+        </div>
+        <input type="hidden" name="rating" id="ratingInput" value="0">
+
+        <div class="upload-section">
+            <div class="upload-buttons">
+                <button type="button" class="upload-btn photo-btn" id="photoBtn">
+                    <span class="upload-icon">📷</span> Thêm hình ảnh
+                </button>
+                <button type="button" class="upload-btn video-btn" id="videoBtn">
+                    <span class="upload-icon">🎥</span> Thêm Video
+                </button>
+            </div>
+            <p class="upload-hint">Đăng vừa mô tả, dùng ảnh chụp thật</p>
+        </div>
+    
+        <div class="review-input-section">
+            <div class="input-group">
+                <label for="chatluong">Chất lượng sản phẩm:</label>
+                <input type="text" id="chatluong" name="chatluong" class="review-input" placeholder="Ví dụ: Tuyệt vời" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="mota_dung">Chất lượng đúng với mô tả:</label>
+                <input type="text" id="mota_dung" name="mota_dung" class="review-input" placeholder="Ví dụ: Quá đúng với mô tả" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="phanloai">Phân loại sản phẩm:</label>
+                <input type="text" id="phanloai" name="phanloai" class="review-input" placeholder="Ví dụ: Grey – Handmade" required>
+            </div>
+    
+            <div class="input-group">
+                <label for="reviewContent">Chia sẻ cảm nhận:</label>
+                <textarea id="reviewContent" name="noidung" class="review-textarea" rows="4" placeholder="Hãy chia sẻ nhận xét cho sản phẩm này bạn nhé!" required></textarea>
+            </div>
+        </div>
+    
+        <div class="submit-section">
+            <button type="submit" class="submit-btn" id="submitReview">
+                Gửi phản hồi cho shop
+            </button>
+        </div>
+    
+        <input type="file" id="photoInput" name="images" accept="image/*" multiple style="display: none;">
+        <input type="file" id="videoInput" name="videos" accept="video/*" style="display: none;">
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeStarRating();
+        initializeFileUploads();
+        initializeSubmitButton();
+    });
+
+    // MODIFIED: Star rating now updates a hidden input field
+    function initializeStarRating() {
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('ratingInput'); // Get the hidden input
+
+        stars.forEach((star) => {
+            star.addEventListener('click', () => {
+                const currentRating = star.getAttribute('data-rating');
+                ratingInput.value = currentRating; // Update hidden input's value
+                updateStarDisplay(currentRating);
+            });
+        });
+    }
+
+    function updateStarDisplay(rating) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            star.classList.add(index < rating ? 'active' : null);
+            star.classList.remove(index < rating ? null : 'active');
+        });
+    }
+
+    // File upload functionality remains the same
+    function initializeFileUploads() {
+        const photoBtn = document.getElementById('photoBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const photoInput = document.getElementById('photoInput');
+        const videoInput = document.getElementById('videoInput');
+
+        photoBtn.addEventListener('click', () => photoInput.click());
+        videoBtn.addEventListener('click', () => videoInput.click());
+
+        photoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) alert(`Đã chọn ${e.target.files.length} hình ảnh`);
+        });
+        
+        videoInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) alert(`Đã chọn video: ${e.target.files[0].name}`);
+        });
+    }
+
+    // MODIFIED: This function now just handles validation before the form submits itself
+    function initializeSubmitButton() {
+        const form = document.getElementById('reviewForm');
+        const ratingInput = document.getElementById('ratingInput');
+
+        form.addEventListener('submit', function(event) {
+            // Check if a star rating has been selected
+            if (parseInt(ratingInput.value, 10) === 0) {
+                alert('Vui lòng chọn số sao đánh giá!');
+                event.preventDefault(); // Stop the form from submitting
+                return;
+            }
+            // If validation passes, the form will submit naturally.
+            // The client-side fetch call is no longer needed.
+        });
+    }
+</script>
+
+<%- include('boilerplates/footer') %>

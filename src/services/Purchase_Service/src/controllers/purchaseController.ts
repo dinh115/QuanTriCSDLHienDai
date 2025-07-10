@@ -8,7 +8,6 @@ import {
     queryUserPurchasesSchema,
     shippingCalculationSchema
 } from '../validators/purchase';
-import chalk from 'chalk';
 import axios from 'axios';
 
 export class PurchaseController {
@@ -29,7 +28,6 @@ export class PurchaseController {
                 return;
             }
 
-            // Ensure user can only create purchases for themselves (unless admin)
             if (req.user?.role !== 'admin' && value.userId !== req.user?.userId) {
                 res.status(403).json({ error: 'Cannot create purchase for another user' });
                 return;
@@ -42,34 +40,24 @@ export class PurchaseController {
                 message: 'Purchase created successfully'
             });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Create purchase error:'));
+            console.error('❌ Create purchase error:');
 
             if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
+                console.error(`→ Message: ${error.message}`);
+                console.error(`→ URL: ${error.config?.url}`);
+                console.error(`→ Status: ${error.response?.status}`);
+                console.error(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`);
             } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
+                console.error(`→ ${error.message}`);
             } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
+                console.error('→ Unknown error:', error);
             }
-            let message = 'Internal server error';
 
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
+            const message = axios.isAxiosError(error)
+                ? error.response?.data?.message || error.response?.data?.error || error.message || 'Request failed'
+                : error instanceof Error
+                    ? error.message
+                    : 'Internal server error';
 
             res.status(500).json({
                 success: false,
@@ -84,60 +72,20 @@ export class PurchaseController {
             const purchase = await this.purchaseService.getPurchaseById(id);
 
             if (!purchase) {
-                res.status(404).json({
-                    success: false,
-                    error: 'Purchase not found'
-                });
+                res.status(404).json({ success: false, error: 'Purchase not found' });
                 return;
             }
 
-            // Check if user can access this purchase
             if (req.user?.role !== 'admin' && purchase.userId !== req.user?.userId) {
-                res.status(403).json({
-                    success: false,
-                    error: 'Access denied'
-                });
+                res.status(403).json({ success: false, error: 'Access denied' });
                 return;
             }
 
-            res.json({
-                success: true,
-                data: purchase
-            });
+            res.json({ success: true, data: purchase });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Get purchase error:'));
-
-            if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
-            } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
-            } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
-            }
-            let message = 'Internal server error';
-
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
+            console.error('❌ Get purchase error:');
+            this.logAxiosOrError(error);
+            res.status(500).json({ success: false, error: this.extractErrorMessage(error) });
         }
     };
 
@@ -145,57 +93,18 @@ export class PurchaseController {
         try {
             const { error, value } = queryPurchasesSchema.validate(req.query);
             if (error) {
-                res.status(400).json({
-                    success: false,
-                    error: error.details[0].message
-                });
+                res.status(400).json({ success: false, error: error.details[0].message });
                 return;
             }
 
-            // Non-admin users can only see their own purchases
-            if (req.user?.role !== 'admin') {
-                value.userId = req.user?.userId;
-            }
+            if (req.user?.role !== 'admin') value.userId = req.user?.userId;
 
             const result = await this.purchaseService.getPurchases(value);
-            res.json({
-                success: true,
-                data: result
-            });
+            res.json({ success: true, data: result });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Get purchases error:'));
-
-            if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
-            } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
-            } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
-            }
-            let message = 'Internal server error';
-
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
+            console.error('❌ Get purchases error:');
+            this.logAxiosOrError(error);
+            res.status(500).json({ success: false, error: this.extractErrorMessage(error) });
         }
     };
 
@@ -205,27 +114,21 @@ export class PurchaseController {
             const { error, value } = updatePurchaseStatusSchema.validate(req.body);
 
             if (error) {
-                res.status(400).json({
-                    success: false,
-                    error: error.details[0].message
-                });
+                res.status(400).json({ success: false, error: error.details[0].message });
                 return;
             }
 
-            // Check if purchase exists and user has access
             const existingPurchase = await this.purchaseService.getPurchaseById(id);
             if (!existingPurchase) {
                 res.status(404).json({ success: false, error: 'Purchase not found' });
                 return;
             }
 
-            // Only admin or purchase owner can update (with restrictions)
             if (req.user?.role !== 'admin' && existingPurchase.userId !== req.user?.userId) {
                 res.status(403).json({ success: false, error: 'Access denied' });
                 return;
             }
 
-            // Regular users can only cancel their own pending purchases
             if (req.user?.role !== 'admin') {
                 if (value.status !== 'cancelled' || existingPurchase.status !== 'pending') {
                     res.status(403).json({ success: false, error: 'You can only cancel pending purchases' });
@@ -234,45 +137,11 @@ export class PurchaseController {
             }
 
             const purchase = await this.purchaseService.updatePurchaseStatus(id, value.status);
-            res.json({
-                success: true,
-                data: purchase,
-                message: 'Purchase status updated successfully'
-            });
+            res.json({ success: true, data: purchase, message: 'Purchase status updated successfully' });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Update purchase error:'));
-
-            if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
-            } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
-            } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
-            }
-            let message = 'Internal server error';
-
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
+            console.error('❌ Update purchase error:');
+            this.logAxiosOrError(error);
+            res.status(500).json({ success: false, error: this.extractErrorMessage(error) });
         }
     };
 
@@ -280,7 +149,6 @@ export class PurchaseController {
         try {
             const { userId } = req.params;
 
-            // Check authorization
             if (req.user?.role !== 'admin' && req.user?.userId !== userId) {
                 res.status(403).json({ error: 'Access denied' });
                 return;
@@ -288,53 +156,16 @@ export class PurchaseController {
 
             const { error, value } = queryUserPurchasesSchema.validate(req.query);
             if (error) {
-                res.status(400).json({
-                    success: false,
-                    error: error.details[0].message
-                });
+                res.status(400).json({ success: false, error: error.details[0].message });
                 return;
             }
 
             const result = await this.purchaseService.getUserPurchases(userId, value);
-
-            res.json({
-                success: true,
-                data: result
-            });
+            res.json({ success: true, data: result });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Get user purchase error:'));
-
-            if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
-            } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
-            } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
-            }
-            let message = 'Internal server error';
-
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
+            console.error('❌ Get user purchase error:');
+            this.logAxiosOrError(error);
+            res.status(500).json({ success: false, error: this.extractErrorMessage(error) });
         }
     };
 
@@ -342,10 +173,7 @@ export class PurchaseController {
         try {
             const { error, value } = shippingCalculationSchema.validate(req.body);
             if (error) {
-                res.status(400).json({
-                    success: false,
-                    error: error.details[0].message
-                });
+                res.status(400).json({ success: false, error: error.details[0].message });
                 return;
             }
 
@@ -354,44 +182,34 @@ export class PurchaseController {
                 value.shippingAddress
             );
 
-            res.json({
-                success: true,
-                data: shippingOptions
-            });
+            res.json({ success: true, data: shippingOptions });
         } catch (error) {
-            console.error(chalk.bold.red('❌ Calculate shipping error:'));
+            console.error('❌ Calculate shipping error:');
+            this.logAxiosOrError(error);
+            res.status(500).json({ success: false, error: this.extractErrorMessage(error) });
+        }
+    };
 
-            if (axios.isAxiosError(error)) {
-                console.error(
-                    chalk.redBright(`→ Message: ${error.message}`),
-                    '\n',
-                    chalk.gray(`→ URL: ${error.config?.url}`),
-                    '\n',
-                    chalk.yellowBright(`→ Status: ${error.response?.status}`),
-                    '\n',
-                    chalk.cyan(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`)
-                );
-            } else if (error instanceof Error) {
-                console.error(chalk.redBright(`→ ${error.message}`));
-            } else {
-                console.error(chalk.gray('→ Unknown error:'), error);
-            }
-            let message = 'Internal server error';
+    private extractErrorMessage = (error: unknown): string => {
+        if (axios.isAxiosError(error)) {
+            return error.response?.data?.message || error.response?.data?.error || error.message || 'Request failed';
+        } else if (error instanceof Error) {
+            return error.message;
+        } else {
+            return 'Internal server error';
+        }
+    };
 
-            if (axios.isAxiosError(error)) {
-                message =
-                    error.response?.data?.message ||
-                    error.response?.data?.error ||
-                    error.message ||
-                    'Request failed';
-            } else if (error instanceof Error) {
-                message = error.message;
-            }
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
+    private logAxiosOrError = (error: unknown): void => {
+        if (axios.isAxiosError(error)) {
+            console.error(`→ Message: ${error.message}`);
+            console.error(`→ URL: ${error.config?.url}`);
+            console.error(`→ Status: ${error.response?.status}`);
+            console.error(`→ Response: ${JSON.stringify(error.response?.data, null, 2)}`);
+        } else if (error instanceof Error) {
+            console.error(`→ ${error.message}`);
+        } else {
+            console.error('→ Unknown error:', error);
         }
     };
 }
