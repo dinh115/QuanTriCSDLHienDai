@@ -28,6 +28,8 @@ export class PurchaseController {
                 return;
             }
 
+            console.info(JSON.stringify(value));
+
             if (req.user?.role !== 'admin' && value.userId !== req.user?.userId) {
                 res.status(403).json({ error: 'Cannot create purchase for another user' });
                 return;

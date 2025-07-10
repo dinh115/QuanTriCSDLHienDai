@@ -83,7 +83,8 @@ app.get('/', (req, res) => {
 app.get('/cart', async (req, res) => {
   const cartId = req.cookies.cartId;
   try {
-    const response = await fetch(`http://cart_service:3004/carts/${cartId}`);
+    const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
+    console.log(response);
     const cart = await response.json();
     const cartItems = cart.items || [];
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity || 0), 0);
@@ -107,7 +108,7 @@ app.get('/cart', async (req, res) => {
 app.post('/cart/add', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { productId, quantity, shopId, name, price } = req.body;
-  const response = await fetch(`http://cart_service:3004/carts/${cartId}/items`, {
+  const response = await fetch(`http://cart-service:3004/carts/${cartId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ productId, quantity, shopId, name, price })
@@ -122,13 +123,13 @@ app.post('/cart/update', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId, quantity } = req.body;
   try {
-    const response = await fetch(`http://cart_service:3004/carts/${cartId}`);
+    const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
     const cart = await response.json();
     const item = cart.items.find(i => i.id === itemId);
     if (!item) return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
     item.quantity = parseInt(quantity);
     item.updatedAt = new Date().toISOString();
-    const updateRes = await fetch(`http://cart_service:3004/carts/${cartId}`, {
+    const updateRes = await fetch(`http://cart-service:3004/carts/${cartId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cart)
@@ -146,7 +147,7 @@ app.post('/cart/remove', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId } = req.body;
   try {
-    const deleteRes = await fetch(`http://cart_service:3004/carts/${cartId}/items/${itemId}`, { method: 'DELETE' });
+    const deleteRes = await fetch(`http://cart-service:3004/carts/${cartId}/items/${itemId}`, { method: 'DELETE' });
     if (!deleteRes.ok) throw new Error('Xoá không thành công');
     res.json({ success: true });
   } catch (err) {

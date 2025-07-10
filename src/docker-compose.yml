@@ -59,11 +59,10 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/purchase_service
-      - USER_SERVICE_URL=http://user-service:3002
+      - USER_SERVICE_URL=http://user-service:3002/api
       - PRODUCT_SERVICE_URL=http://product-service:3001
       - PAYMENT_SERVICE_URL=http://payment-service:3003
       - CART_SERVICE_URL=http://cart-service:3004
-      - VOUCHER_SERVICE_URL=http://voucher-service:3005
       - DEFAULT_SHIPPING_RATE=15000
       - EXPRESS_SHIPPING_RATE=30000
       - FREE_SHIPPING_THRESHOLD=100000
