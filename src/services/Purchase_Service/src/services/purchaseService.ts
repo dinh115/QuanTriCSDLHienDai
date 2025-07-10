@@ -229,12 +229,11 @@ export class PurchaseService {
         }
 
         let purchaseItems: PurchaseItem[] = [];
-        console.info(data.cartId);
-        console.info(data.items);
+        //console.log(data.cartId);
+        //console.log(data.items);
         // Get items from cart or use provided items
         if (data.cartId) {
             const cartData = await this.externalServiceClient.getCartData(data.cartId);
-            console.info(cartData);
             const cartItems = cartData.items.map(item => ({
                 shopId: item.shopId,
                 productId: item.productId,

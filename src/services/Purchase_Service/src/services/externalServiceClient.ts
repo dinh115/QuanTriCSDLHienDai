@@ -70,14 +70,9 @@ export class ExternalServiceClient {
 
     async getCartData(cartId: string): Promise<CartData> {
         try {
-            const url = `${this.cartServiceUrl}/carts/${cartId}`;
-            console.info(`Calling: ${url}`);
-            const response = await axios.get(url);
-            // Dữ liệu thật từ cart-service
-            //console.info('RESPONSE DATA:', JSON.stringify(response.data, null, 2));
-            return response.data;
+            const response = await axios.get(`${this.cartServiceUrl}/carts/${cartId}`);
+            return response.data.data;
         } catch (error) {
-            console.error('Error fetching cart data:', error);
             if (axios.isAxiosError(error) && error.response?.status === 404) {
                 throw new Error('Cart not found');
             }
