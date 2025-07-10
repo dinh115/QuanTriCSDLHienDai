@@ -71,7 +71,7 @@ export class ExternalServiceClient {
     async getCartData(cartId: string): Promise<CartData> {
         try {
             const response = await axios.get(`${this.cartServiceUrl}/carts/${cartId}`);
-            return response.data.data;
+            return response.data;
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 404) {
                 throw new Error('Cart not found');
@@ -91,13 +91,19 @@ export class ExternalServiceClient {
     async validateProducts(items: Omit<PurchaseItem, 'totalPrice'>[]): Promise<PurchaseItem[]> {
         try {
             const productIds = items.map(item => item.productId);
+
             const response = await axios.post(`${this.productServiceUrl}/products/validate`, {
                 productIds
             });
-            const validProducts: ProductValidationResponse[] = response.data;
+
+            // Trích đúng mảng sản phẩm hợp lệ từ response
+            const validProducts: ProductValidationResponse[] = response.data.data.valid;
+
+            console.info("VALID PRODUCTS: " + JSON.stringify(validProducts));
 
             return items.map(item => {
                 const product = validProducts.find(p => p.id === item.productId);
+
                 if (!product || !product.available) {
                     throw new Error(`Product ${item.productId} not found or unavailable`);
                 }
@@ -122,6 +128,7 @@ export class ExternalServiceClient {
             throw new Error('Failed to validate products');
         }
     }
+
 
     async processPayment(purchase: Purchase, paymentToken?: string): Promise<void> {
         try {

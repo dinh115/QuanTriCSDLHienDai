@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { v5 as uuidv5 } from 'uuid';
 
+
 const productSchema = new mongoose.Schema({
     id: {
         type: String,
