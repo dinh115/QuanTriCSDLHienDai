@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giỏ hàng của bạn</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Giỏ hàng của bạn</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            rel="stylesheet">
+        <style>
         * {
             margin: 0;
             padding: 0;
@@ -186,73 +188,82 @@
             color: #bdc3c7;
         }
     </style>
-</head>
-<body>
-    <div class="cart-container">
-        <div class="cart-header">
-            <i class="fas fa-shopping-cart"></i>
-            <h1>Giỏ hàng của bạn</h1>
-        </div>
-        
-        <div class="cart-content">
-            <% if (typeof cartItems !== 'undefined' && cartItems.length > 0) { %>
+    </head>
+    <body>
+        <div class="cart-container">
+            <div class="cart-header">
+                <i class="fas fa-shopping-cart"></i>
+                <h1>Giỏ hàng của bạn</h1>
+            </div>
+
+            <div class="cart-content">
+                <% if (typeof cartItems !== 'undefined' && cartItems.length > 0)
+                { %>
                 <% cartItems.forEach((item, index) => { %>
-                    <div class="cart-item">
-                        <input
-                            type="checkbox"
-                            class="item-checkbox"
-                            <%= lastAddedId === item.id ? 'checked' : '' %>>
-                        
-                        <div class="item-info">
-                            <div class="item-name">Sản phẩm: <%= item.name || 'helios_300' %></div>
-                            <div class="item-details">Số lượng: <%= item.quantity || 1 %></div>
-                        </div>
-                        
-                        <div class="quantity-controls">
-                            <button class="quantity-btn" onclick="updateQuantity('<%= item.id %>', -1)">-</button>
-                            <input type="number" class="quantity-input" value="<%= item.quantity || 1 %>" 
-                                   min="1" onchange="setQuantity('<%= item.id %>', this.value)">
-                            <button class="quantity-btn" onclick="updateQuantity('<%= item.id %>', 1)">+</button>
-                        </div>
-                        
-                        <div class="item-price">
-                            <%= (item.price || 0).toLocaleString('vi-VN') %>đ
-                        </div>
-                        
-                        <button class="delete-btn" onclick="removeItem('<%= item.id %>')">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                <div class="cart-item">
+                    <input
+                        type="checkbox"
+                        class="item-checkbox"
+                        <%=lastAddedId === item.id ? 'checked' : '' %>>
+
+                    <div class="item-info">
+                        <div class="item-name">Sản phẩm: <%= item.name ||
+                            'helios_300' %></div>
+                        <div class="item-details">Số lượng: <%= item.quantity ||
+                            1 %></div>
                     </div>
+
+                    <div class="quantity-controls">
+                        <button class="quantity-btn"
+                            onclick="updateQuantity('<%= item.id %>', -1)">-</button>
+                        <input type="number" class="quantity-input"
+                            value="<%= item.quantity || 1 %>"
+                            min="1"
+                            onchange="setQuantity('<%= item.id %>', this.value)">
+                        <button class="quantity-btn"
+                            onclick="updateQuantity('<%= item.id %>', 1)">+</button>
+                    </div>
+
+                    <div class="item-price">
+                        <%= (item.price || 0).toLocaleString('vi-VN') %>đ
+                    </div>
+
+                    <button class="delete-btn"
+                        onclick="removeItem('<%= item.id %>')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
                 <% }) %>
-                
+
                 <div class="cart-summary">
                     <div class="total-row">
                         <span>Tổng cộng:</span>
                         <span id="total-price">
-                            <%= (typeof total !== 'undefined' ? total : 0).toLocaleString('vi-VN') %>đ
+                            <%= (typeof total !== 'undefined' ? total :
+                            0).toLocaleString('vi-VN') %>đ
                         </span>
                     </div>
                     <button class="checkout-btn" onclick="checkout()">
                         <i class="fas fa-credit-card"></i> Tiến hành thanh toán
                     </button>
                 </div>
-            <% } else { %>
+                <% } else { %>
                 <div class="empty-cart">
                     <i class="fas fa-shopping-cart"></i>
                     <h3>Giỏ hàng của bạn đang trống</h3>
                     <p>Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm</p>
                 </div>
-            <% } %>
-            
-            <div class="cart-actions">
-                <a href="/.." class="continue-shopping">
-                    <i class="fas fa-arrow-left"></i> Tiếp tục mua hàng
-                </a>
+                <% } %>
+
+                <div class="cart-actions">
+                    <a href="/.." class="continue-shopping">
+                        <i class="fas fa-arrow-left"></i> Tiếp tục mua hàng
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script>
+        <script>
         function updateQuantity(itemId, change) {
             const input = document.querySelector(`input[onchange*="${itemId}"]`);
             const currentValue = parseInt(input.value);
@@ -342,5 +353,5 @@
             // Implementation would depend on your data structure
         }
     </script>
-</body>
+    </body>
 </html>

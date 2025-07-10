@@ -298,6 +298,7 @@
     margin: 0;
     line-height: 1.4;
 }
+
 /* Site Logo */
 .site-logo {
     display: inline-block;
@@ -370,29 +371,29 @@
     .review-form-container {
         padding: 16px;
     }
-    
+
     .review-form {
         padding: 20px;
     }
-    
+
     .upload-buttons {
         flex-direction: column;
     }
-    
+
     .upload-btn {
         min-width: auto;
     }
-    
+
     .review-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
     }
-    
+
     .review-date {
         margin-left: 0;
     }
-    
+
     .star {
         font-size: 28px;
     }
