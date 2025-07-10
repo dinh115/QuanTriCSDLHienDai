@@ -6,7 +6,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        default: function() {
+        default: function () {
             return uuidv5(`${this.name}_${this.shopId}`, NAMESPACE);
         }
     },
@@ -99,7 +99,7 @@ productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ name: 'text', description: 'text' });
 
 // Pre-save middleware to update updatedAt
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();
 });
