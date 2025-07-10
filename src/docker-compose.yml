@@ -1,18 +1,18 @@
+
 services:
-  gateway:
-    build: ./services/gateway
-    ports:
-      - "3000:3000"
-    depends_on:
-      - product-service
-      - user-service
-    networks:
-      - internal
+  # gateway:
+  #   build: ./services/gateway
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - product-service
+  #     - user-service
+  #   networks:
+  #     - internal
 
   product-service:
-    build: 
+    build:
       context: ./services/Product_Service
-      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     depends_on:
@@ -24,20 +24,22 @@ services:
     build: ./services/User_Service
     ports:
       - "3002:3002"
-    depends_on:
-      - mongo
     environment:
-      - MONGO_URI=mongodb://mongo:27017/USER_DATABASE
+      - NODE_ENV=development
       - PORT=3002
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=24h]
     networks:
       - internal
+    volumes:
+      - ./logs:/app/logs
 
   purchase-service:
     build: ./services/Purchase_Service
     ports:
-      - "3006:3006"
+      - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/purchase_service
       - USER_SERVICE_URL=http://user-service:3002
       - PRODUCT_SERVICE_URL=http://product-service:3001
@@ -53,7 +55,6 @@ services:
       - product-service
       - payment-service
       - cart-service
-      # - voucher-service
     networks:
       - internal
 
@@ -72,7 +73,7 @@ services:
     ports:
       - "3004:3004"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3004
     networks:
       - internal
@@ -82,13 +83,13 @@ services:
   #   ports:
   #     - "3005:3005"
   #   environment:
-  #     - NODE_ENV=development
+  #     - NODE_ENV=production
   #     - PORT=3005
   #   networks:
   #     - internal
 
   mongo:
-    image: mongo:6.0  # hoặc 7.0 tùy bạn chọn
+    image: mongo:6.0
     container_name: mongo
     ports:
       - "27017:27017"
