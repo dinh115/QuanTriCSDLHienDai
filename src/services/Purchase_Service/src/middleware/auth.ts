@@ -27,7 +27,7 @@ export const authenticate = async (
             return;
         }
 
-        const authServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
+        const authServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002/api';
         const response = await axios.post(`${authServiceUrl}/auth/verify-token`, { token });
 
         if (response.data.success) {

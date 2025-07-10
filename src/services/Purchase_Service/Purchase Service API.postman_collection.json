@@ -1158,7 +1158,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:3000",
+			"value": "http://localhost:3006",
 			"type": "string"
 		},
 		{
@@ -1183,7 +1183,7 @@
 		},
 		{
 			"key": "userURL",
-			"value": "http://localhost:3001",
+			"value": "http://localhost:3002",
 			"type": "default"
 		},
 		{
@@ -1218,7 +1218,7 @@
 		},
 		{
 			"key": "productURL",
-			"value": "http://localhost:3002",
+			"value": "http://localhost:3001",
 			"type": "default"
 		}
 	]

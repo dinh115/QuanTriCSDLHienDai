@@ -3,21 +3,17 @@ services:
     image: redis:latest
     container_name: redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
-  cart_service:
-    container_name: cart_service
-    build:
-      context: ./services/Cart_Service
-  # gateway:
-  #   build: ./services/gateway
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - product-service
-  #     - user-service
-  #   networks:
-  #     - internal
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - product-service
+      - user-service
+    networks:
+      - internal
 
   product-service:
     build:
@@ -46,7 +42,7 @@ services:
   purchase-service:
     build: ./services/Purchase_Service
     ports:
-      - "3000:3000"
+      - "3006:3006"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/purchase_service
@@ -77,7 +73,7 @@ services:
     networks:
       - internal
 
-  cart_service:
+  cart-service:
     container_name: cart_service
     build:
       context: ./services/Cart_Service
@@ -113,7 +109,7 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - cart_service
+      - cart-service
 
 volumes:
   mongo_data:

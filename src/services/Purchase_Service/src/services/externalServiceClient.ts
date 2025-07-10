@@ -32,8 +32,8 @@ export class ExternalServiceClient {
     private serviceToken: string;
 
     constructor() {
-        this.userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001/api';
-        this.productServiceUrl = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3002';
+        this.userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3002/api';
+        this.productServiceUrl = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3001';
         this.paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:3003';
         this.cartServiceUrl = process.env.CART_SERVICE_URL || 'http://localhost:3004';
 
