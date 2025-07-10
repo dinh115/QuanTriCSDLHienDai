@@ -3,121 +3,16 @@ services:
     image: redis:latest
     container_name: redis
     ports:
-      - "6380:6379"
-    networks:
-      - internal
+      - "6379:6379"
 
-  redis_user:
-    image: redis:latest
-    container_name: redis_user
-    ports:
-      - "6381:6379"
-    networks:
-      - internal
-
-  gateway:
-    build: ./services/gateway
-    ports:
-      - "3000:3000"
-    depends_on:
-      - product-service
-      - user-service
-    networks:
-      - internal
-
-  product-service:
-    build:
-      context: ./services/Product_Service
-    container_name: product-service
-    ports:
-      - "3001:3001"
-    depends_on:
-      - mongo
-    networks:
-      - internal
-
-  user-service:
-    build: ./services/User_Service
-    container_name: user-service
-    ports:
-      - "3002:3002"
-    environment:
-      - NODE_ENV=development
-      - PORT=3002
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=24h
-    volumes:
-      - ./logs:/app/logs
-    networks:
-      - internal
-
-  purchase-service:
-    build: ./services/Purchase_Service
-    container_name: purchase-service
-    ports:
-      - "3006:3006"
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017/purchase_service
-      - USER_SERVICE_URL=http://user-service:3002
-      - PRODUCT_SERVICE_URL=http://product-service:3001
-      - PAYMENT_SERVICE_URL=http://payment-service:3003
-      - CART_SERVICE_URL=http://cart-service:3004
-      - VOUCHER_SERVICE_URL=http://voucher-service:3005
-      - DEFAULT_SHIPPING_RATE=15000
-      - EXPRESS_SHIPPING_RATE=30000
-      - FREE_SHIPPING_THRESHOLD=100000
-    depends_on:
-      - mongo
-      - user-service
-      - product-service
-      - payment-service
-      - cart-service
-    networks:
-      - internal
-
-  payment-service:
-    build: ./services/Payment_Service
-    container_name: payment-service
-    ports:
-      - "3003:3003"
-    environment:
-      - NODE_ENV=development
-      - PORT=3003
-    networks:
-      - internal
-
-  cart-service:
-    container_name: cart-service
+  cart_service:
+    container_name: cart_service
     build:
       context: ./services/Cart_Service
     ports:
-      - "3004:3004"
+      - "3001:3001"
     depends_on:
       - redis
-    networks:
-      - internal
-
-  # voucher-service:
-  #   build: ./services/Voucher_Service
-  #   container_name: voucher-service
-  #   ports:
-  #     - "3005:3005"
-  #   environment:
-  #     - NODE_ENV=production
-  #     - PORT=3005
-  #   networks:
-  #     - internal
-
-  mongo:
-    image: mongo:6.0
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - internal
 
   frontend:
     container_name: frontend
@@ -126,19 +21,4 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - gateway
-      - product-service
-      - user-service
-      - purchase-service
-      - payment-service
-      - cart-service
-    # - voucher-service
-    networks:
-      - internal
-
-volumes:
-  mongo_data:
-
-networks:
-  internal:
-    driver: bridge
+      - cart_service
