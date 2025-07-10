@@ -1,5 +1,5 @@
 /**
- * TO RUN THIS FILE: node seed-users-10k.js
+ * TO RUN THIS FILE: node seed_users.js
  * Optimized version for seeding 10k users
  */
 

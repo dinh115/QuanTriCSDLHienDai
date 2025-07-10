@@ -4,7 +4,9 @@ services:
     container_name: redis
     ports:
       - "6380:6379"
-  
+    networks:
+      - internal
+
   redis_user:
     image: redis:latest
     container_name: redis_user
@@ -26,6 +28,7 @@ services:
   product-service:
     build:
       context: ./services/Product_Service
+    container_name: product-service
     ports:
       - "3001:3001"
     depends_on:
@@ -35,20 +38,22 @@ services:
 
   user-service:
     build: ./services/User_Service
+    container_name: user-service
     ports:
       - "3002:3002"
     environment:
       - NODE_ENV=development
       - PORT=3002
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=24h]
-    networks:
-      - internal
+      - JWT_EXPIRES_IN=24h
     volumes:
       - ./logs:/app/logs
+    networks:
+      - internal
 
   purchase-service:
     build: ./services/Purchase_Service
+    container_name: purchase-service
     ports:
       - "3006:3006"
     environment:
@@ -73,6 +78,7 @@ services:
 
   payment-service:
     build: ./services/Payment_Service
+    container_name: payment-service
     ports:
       - "3003:3003"
     environment:
@@ -82,16 +88,19 @@ services:
       - internal
 
   cart-service:
-    container_name: cart_service
+    container_name: cart-service
     build:
       context: ./services/Cart_Service
     ports:
       - "3004:3004"
     depends_on:
       - redis
+    networks:
+      - internal
 
   # voucher-service:
   #   build: ./services/Voucher_Service
+  #   container_name: voucher-service
   #   ports:
   #     - "3005:3005"
   #   environment:
@@ -117,7 +126,15 @@ services:
     ports:
       - "5000:5000"
     depends_on:
+      - gateway
+      - product-service
+      - user-service
+      - purchase-service
+      - payment-service
       - cart-service
+    # - voucher-service
+    networks:
+      - internal
 
 volumes:
   mongo_data:
