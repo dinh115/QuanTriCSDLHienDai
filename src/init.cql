@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS products(
     created_at TIMESTAMP,
     PRIMARY KEY(productid)
 );
-INSERT INTO products (productid, productname, description, shopid, images, created_at) VALUES (10000000-0000-0000-0000-000000000000, 'Sữa tiệt trùng TH True Milk', 'Thùng 36 hộp', 21111111-1111-1111-1111-111111111111, 'https://shopsuatramanh.com/upload/product/sua-tuoi-tiet-trung-co-duong-th-true-milk-hop-180ml-thung-8340.jpg', toTimestamp(now()));
+INSERT INTO products (productid, productname, description, shopid, image, created_at) VALUES (10000000-0000-0000-0000-000000000000, 'Sữa tiệt trùng TH True Milk', 'Thùng 36 hộp', 21111111-1111-1111-1111-111111111111, 'https://shopsuatramanh.com/upload/product/sua-tuoi-tiet-trung-co-duong-th-true-milk-hop-180ml-thung-8340.jpg', toTimestamp(now()));
 INSERT INTO products (productid, productname, description, shopid, image, created_at) 
 VALUES (f47ac10b-58cc-4372-a567-0e02b2c3d479, 
         'Sony WH-1000XM5 Wireless Headphones', 

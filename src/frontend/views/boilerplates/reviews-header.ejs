@@ -43,12 +43,12 @@
                 console.log('API Data:', data); // Kiểm tra dữ liệu từ API
 
                 // Cập nhật số lượng đánh giá cho các nút lọc
-                document.querySelector('.filter-btn[data-filter="all"]').textContent = `Tất Cả (${data.total_reviews})`;
-                document.querySelector('.filter-btn[data-filter="rating-5"]').textContent = `5 Sao (${data.rating_5})`;
-                document.querySelector('.filter-btn[data-filter="rating-4"]').textContent = `4 Sao (${data.rating_4})`;
-                document.querySelector('.filter-btn[data-filter="rating-3"]').textContent = `3 Sao (${data.rating_3})`;
-                document.querySelector('.filter-btn[data-filter="rating-2"]').textContent = `2 Sao (${data.rating_2})`;
-                document.querySelector('.filter-btn[data-filter="rating-1"]').textContent = `1 Sao (${data.rating_1})`;
+                document.querySelector('.filter-btn[data-filter="all"]').textContent = `Tất Cả (${data.total_reviews || 0})`;
+                document.querySelector('.filter-btn[data-filter="rating-5"]').textContent = `5 Sao (${data.rating_5 || 0})`;
+                document.querySelector('.filter-btn[data-filter="rating-4"]').textContent = `4 Sao (${data.rating_4 || 0})`;
+                document.querySelector('.filter-btn[data-filter="rating-3"]').textContent = `3 Sao (${data.rating_3 || 0})`;
+                document.querySelector('.filter-btn[data-filter="rating-2"]').textContent = `2 Sao (${data.rating_2 || 0})`;
+                document.querySelector('.filter-btn[data-filter="rating-1"]').textContent = `1 Sao (${data.rating_1 || 0})`;
                 document.querySelector('.filter-btn[data-filter="images"]').textContent = `Có Hình Ảnh / Video (${data.has_images})`;
 
                 // Tính điểm đánh giá trung bình
