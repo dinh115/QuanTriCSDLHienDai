@@ -398,3 +398,32 @@
         font-size: 28px;
     }
 }
+
+.product-review-info {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between image and text */
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee; /* A subtle line to separate this section */
+}
+
+.product-review-img {
+    width: 80px; /* Adjust size as needed */
+    height: 80px;
+    object-fit: cover; /* Ensures the image covers the area without distortion */
+    border-radius: 8px; /* Slightly rounded corners for the image */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.product-review-name {
+    font-size: 1.5em; /* Larger font for the product name */
+    color: #333;
+    margin: 0; /* Remove default margin */
+}
+
+.product-review-instruction {
+    font-size: 1em;
+    color: #666;
+    margin: 0;
+}

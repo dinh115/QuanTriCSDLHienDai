@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phản Hồi Đánh Giá - Shop Owner</title>
+    <link rel="stylesheet" href="/styles/reviews.css">
+    <link rel="shortcut icon" href="/static/shopee.svg" type="image/x-icon">
+    <link rel="stylesheet" href="/styles/normalize.min.css">
+    <link rel="stylesheet" href="/styles/bootstrap.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/grid.css">
+    <link rel="stylesheet" href="/styles/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap&subset=vietnamese" rel="stylesheet">
+    <script src="/scripts/jquery.js"></script>
+    <script src="/scripts/bootstrap.js"></script>
+    <style>
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-more-reviews {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .no-more-reviews.show {
+            display: block;
+        }
+
+        /* NEW: Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            background: none;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .modal-footer button {
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #sendReplyBtn {
+            background-color: #ee4d2d;
+            color: white;
+            border: none;
+        }
+
+        #cancelReplyBtn {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <%- include('boilerplates/reviews-header') %>
+        
+        <div class="reviews-container" id="reviews-container">
+            <% reviews.forEach(review => { %>
+                <%- include('boilerplates/reviews-item-shop-owner', { review: review, productId: productId }) %>
+            <% }) %>
+        </div>
+        
+        <div class="loading-spinner" id="loading-spinner">
+            <div class="spinner"></div>
+            <p>Đang tải thêm đánh giá...</p>
+        </div>
+        
+        <div class="no-more-reviews" id="no-more-reviews">
+            Không còn bình luận!
+        </div>
+    </div>
+    <%- include('boilerplates/footer') %>
+
+    <div id="replyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Phản hồi đánh giá của khách hàng</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn đang phản hồi đánh giá của người dùng <span id="replyUsername"></span>.</p>
+                <textarea id="replyContent" placeholder="Nhập nội dung phản hồi..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelReplyBtn">Hủy</button>
+                <button id="sendReplyBtn">Gửi phản hồi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLoading = false;
+        let hasMore = <%= hasMore %>;
+        let nextPage = '<%= nextPage %>';
+        let currentFilter = 'all';
+        const productId = '<%= productId %>';
+
+        // Function to create review item HTML (UPDATED)
+        function createReviewHTML(review) {
+            // Create stars HTML
+            let starsHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHTML += `<span class="star ${i <= review.rating ? 'filled' : ''}">★</span>`;
+            }
+            
+            // Create images HTML
+            let imagesHTML = '';
+            if (review.images && review.images.length > 0) {
+                imagesHTML = '<div class="review-images">';
+                review.images.forEach((image, index) => {
+                    imagesHTML += `
+                        <div class="image-container">
+                            <img src="${image}" alt="Review image ${index + 1}"
+                                onload="this.nextElementSibling.style.display='none';" 
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="image-placeholder">
+                                ${index === 0 ? '📷' : '🖼️'}
+                            </div>
+                        </div>
+                    `;
+                });
+                imagesHTML += '</div>';
+            }
+            
+            // Create response HTML and reply button
+            let responseAndReplyHTML = '';
+            if (review.response) {
+                responseAndReplyHTML = `
+                    <div class="seller-response">
+                        <div class="response-header">${review.response.title}</div>
+                        <div class="response-content">${review.response.content}</div>
+                    </div>
+                `;
+            } else {
+                responseAndReplyHTML = `
+                    <div class="reply-button-container">
+                        <button class="reply-to-review-btn" data-mauser="${review.mauser}" data-username="${review.username}">
+                            <i class="fa-solid fa-reply"></i> Phản hồi đánh giá
+                        </button>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="review-item" data-mauser="${review.mauser}">
+                    <div class="review-header">
+                        <div class="user-avatar">
+                            <img src="/images/default-avatar.png" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="avatar-placeholder">
+                                ${review.username.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        
+                        <div class="review-info">
+                            <div class="username">${review.username}</div>
+                            <div class="review-meta">
+                                <div class="stars">${starsHTML}</div>
+                                <div class="review-date">${review.date}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="review-content">
+                        <div class="review-title">
+                            <div><strong>Chất lượng sản phẩm:</strong> ${review.chatluong}</div>
+                            <div><strong>Chất lượng đúng với mô tả:</strong> ${review.mota_dung}</div>
+                            <div><strong>Phân loại sản phẩm:</strong> ${review.phanloai}</div>
+                        </div>
+                        <div class="review-text">${review.content}</div>
+                        
+                        ${imagesHTML}
+                        ${responseAndReplyHTML}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Function to load reviews with filter
+        async function loadReviews(filter = 'all', pageState = null, append = false) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            document.getElementById('loading-spinner').classList.add('show');
+            
+            try {
+                let url = `/api/reviews/${productId}?filter=${filter}`;
+                if (pageState) {
+                    url += `&pageState=${pageState}`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.reviews) {
+                    const reviewsContainer = document.getElementById('reviews-container');
+                    
+                    if (!append) {
+                        // Clear existing reviews for new filter
+                        reviewsContainer.innerHTML = '';
+                        // Hide "no more reviews" message
+                        document.getElementById('no-more-reviews').classList.remove('show');
+                    }
+                    
+                    // Add new reviews to the container
+                    data.reviews.forEach(review => {
+                        reviewsContainer.insertAdjacentHTML('beforeend', createReviewHTML(review));
+                    });
+                    
+                    // Update pagination state
+                    nextPage = data.nextPage;
+                    hasMore = data.hasMore;
+                    currentFilter = filter;
+                    
+                    // Show "no more reviews" message if no more data
+                    if (!hasMore) {
+                        document.getElementById('no-more-reviews').classList.add('show');
+                    }
+                    
+                    // Re-bind event listeners for new buttons
+                    bindReplyButtonListeners();
+                }
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+            } finally {
+                isLoading = false;
+                document.getElementById('loading-spinner').classList.remove('show');
+            }
+        }
+        
+        // Function to load more reviews (for infinite scroll)
+        async function loadMoreReviews() {
+            if (isLoading || !hasMore) return;
+            
+            await loadReviews(currentFilter, nextPage, true);
+        }
+        
+        // NEW: Function to bind event listeners to reply buttons
+        function bindReplyButtonListeners() {
+            const replyButtons = document.querySelectorAll('.reply-to-review-btn');
+            const replyModal = document.getElementById('replyModal');
+            const replyUsername = document.getElementById('replyUsername');
+            const replyContent = document.getElementById('replyContent');
+            const sendReplyBtn = document.getElementById('sendReplyBtn');
+            const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+            const closeBtn = document.querySelector('.close-btn');
+            
+            let currentReviewMauser = null;
+            let currentReviewElement = null;
+
+            replyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    currentReviewMauser = this.dataset.mauser;
+                    const username = this.dataset.username;
+                    currentReviewElement = this.closest('.review-item');
+                    
+                    replyUsername.textContent = username;
+                    replyContent.value = ''; // Clear previous content
+                    replyModal.style.display = 'flex';
+                });
+            });
+            
+            closeBtn.addEventListener('click', () => {
+                replyModal.style.display = 'none';
+            });
+            
+            cancelReplyBtn.addEventListener('click', () => {
+                replyModal.style.display = 'none';
+            });
+
+            // Handle reply submission
+            sendReplyBtn.addEventListener('click', async () => {
+                const replyText = replyContent.value.trim();
+                if (!replyText) {
+                    alert('Nội dung phản hồi không được để trống.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/product/${productId}/reviews/${currentReviewMauser}/reply`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reply_content: replyText })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        alert(result.message);
+                        
+                        // Dynamically update the review item
+                        if (currentReviewElement) {
+                            const replyContainer = document.createElement('div');
+                            replyContainer.classList.add('seller-response');
+                            replyContainer.innerHTML = `
+                                <div class="response-header">Phản Hồi Của Người Bán</div>
+                                <div class="response-content">${replyText}</div>
+                            `;
+                            
+                            const replyButtonContainer = currentReviewElement.querySelector('.reply-button-container');
+                            if (replyButtonContainer) {
+                                replyButtonContainer.replaceWith(replyContainer);
+                            }
+                        }
+                        
+                        replyModal.style.display = 'none';
+                        
+                    } else {
+                        alert(result.error);
+                    }
+                } catch (error) {
+                    console.error('Error submitting reply:', error);
+                    alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                }
+            });
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', (event) => {
+                if (event.target === replyModal) {
+                    replyModal.style.display = 'none';
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter button click handlers
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    let filter = this.getAttribute('data-filter');
+                    if (!filter) {
+                        const buttonText = this.textContent.toLowerCase();
+                        if (buttonText.includes('5 sao')) { filter = 'rating-5'; }
+                        else if (buttonText.includes('4 sao')) { filter = 'rating-4'; }
+                        else if (buttonText.includes('3 sao')) { filter = 'rating-3'; }
+                        else if (buttonText.includes('2 sao')) { filter = 'rating-2'; }
+                        else if (buttonText.includes('1 sao')) { filter = 'rating-1'; }
+                        else if (buttonText.includes('hình ảnh') || buttonText.includes('video')) { filter = 'images'; }
+                        else { filter = 'all'; }
+                    }
+                    loadReviews(filter);
+                });
+            });
+            
+            // Bind reply button listeners on initial load
+            bindReplyButtonListeners();
+        });
+        
+        // Scroll event listener for infinite scrolling
+        window.addEventListener('scroll', function() {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+                loadMoreReviews();
+            }
+        });
+        
+        // Show "no more reviews" message on initial load if no more data
+        if (!hasMore) {
+            document.getElementById('no-more-reviews').classList.add('show');
+        }
+    </script>
+    
+</body>
+</html>

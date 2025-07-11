@@ -97,7 +97,24 @@ services:
       - redis
     networks:
       - internal
-
+  review-service:
+    build:
+      context: ./services/Review_Service
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=development
+      - PORT=3009
+      - CASSANDRA_CONTACT_POINTS=cassandra-node-1
+      - CASSANDRA_DATACENTER=datacenter1
+      - CASSANDRA_KEYSPACE=review_data
+    depends_on:
+      cassandra-docker:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: always
+  
   # voucher-service:
   #   build: ./services/Voucher_Service
   #   container_name: voucher-service
@@ -119,6 +136,28 @@ services:
     networks:
       - internal
 
+  cassandra-docker:
+    image: cassandra:latest
+    container_name: cassandra-node-1
+    hostname: cassandra-node-1
+    ports:
+      - "9042:9042" # CQL native port
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_NUM_TOKENS=256
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+    volumes:
+      - cassandra_data:/var/lib/cassandra # Persistent data volume
+      - ./init.cql:/docker-entrypoint-initdb.d/init.cql # Mount init script
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe keyspaces' > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+    restart: always
   frontend:
     container_name: frontend
     build:
@@ -132,12 +171,14 @@ services:
       - purchase-service
       - payment-service
       - cart-service
+      - review-service
     # - voucher-service
     networks:
       - internal
 
 volumes:
   mongo_data:
+  cassandra_data:
 
 networks:
   internal:
