@@ -1,4 +1,3 @@
-// server.js (MERGED)
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,6 +29,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use((req, res, next) => {
+  let cartId;
+  if (req.user && req.user.id) cartId = req.user.id;
+  else if (req.cookies.cartId) cartId = req.cookies.cartId;
+  else {
+    cartId = uuidv4();
+    res.cookie('cartId', cartId);
+  }
+  res.cookie('cartId', cartId);
+  next();
+});
 app.use(async (req, res, next) => {
   const cartId = req.cookies.cartId;
   let cartItems = [];
@@ -43,14 +53,6 @@ app.use(async (req, res, next) => {
   }
 
   res.locals.cartItems = cartItems;
-  next();
-});
-
-// Middleware gán cartId nếu chưa có
-app.use((req, res, next) => {
-  if (!req.cookies.cartId) {
-    res.cookie('cartId', uuidv4());
-  }
   next();
 });
 
@@ -187,6 +189,11 @@ app.get('/cart', async (req, res) => {
 app.post('/cart/add', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { productId, quantity, shopId, name, price } = req.body;
+
+  if (!productId || !shopId || !name || !price || isNaN(quantity)) {
+    return res.status(400).send("Thiếu thông tin sản phẩm hợp lệ.");
+  }
+  
   const response = await fetch(`http://cart-service:3004/carts/${cartId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
