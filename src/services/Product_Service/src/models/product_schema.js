@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { v5 as uuidv5 } from 'uuid';
 
+const NAMESPACE = '3f96061a-3a25-4f89-9ae9-abc012345678'
+
 const productSchema = new mongoose.Schema({
     id: {
         type: String,

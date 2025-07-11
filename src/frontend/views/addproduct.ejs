@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm Sản Phẩm Mới</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        input, textarea, select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .specs-container {
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .add-spec-container {
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+        }
+        
+        .add-spec-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .add-spec-form input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .add-spec-form button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .add-spec-form button:hover {
+            background: #218838;
+        }
+        
+        .custom-spec-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .custom-spec-item span {
+            font-weight: 500;
+            margin-right: 10px;
+            color: #495057;
+        }
+        
+        .custom-spec-item button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: auto;
+        }
+        
+        .custom-spec-item button:hover {
+            background: #c82333;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Thêm Sản Phẩm Mới</h1>
+            <p>Nhập thông tin sản phẩm để thêm vào cửa hàng</p>
+        </div>
+        
+        <div class="form-container">
+            <div id="message"></div>
+            <div class="loading" id="loading">Đang xử lý...</div>
+            <form id="productForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="shopId">Shop ID *</label>
+                        <input type="text" id="shopId" name="shopId" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Danh mục *</label>
+                        <input type="text" id="category" name="category" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="name">Tên sản phẩm *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="description">Mô tả sản phẩm *</label>
+                        <textarea id="description" name="description" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">Giá (VNĐ) *</label>
+                        <input type="number" id="price" name="price" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Tồn kho</label>
+                        <input type="number" id="stock" name="stock" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subcategory">Danh mục con</label>
+                        <input type="text" id="subcategory" name="subcategory">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="brand">Thương hiệu</label>
+                        <input type="text" id="brand" name="brand">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Trạng thái *</label>
+                        <select id="status" name="status" required>
+                            <option value="draft">Nháp</option>
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Không hoạt động</option>
+                            <option value="out_of_stock">Hết hàng</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rating">Đánh giá (0 - 5)</label>
+                        <input type="number" id="rating" name="rating" step="0.1" min="0" max="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewCount">Lượt đánh giá</label>
+                        <input type="number" id="reviewCount" name="reviewCount" min="0">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="image">Hình ảnh chính</label>
+                        <input type="url" id="image" name="image">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="images">Hình ảnh phụ (phân cách dấu phẩy)</label>
+                        <input type="text" id="images" name="images">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="tags">Tags (phân cách dấu phẩy)</label>
+                        <input type="text" id="tags" name="tags">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Thông số thêm</label>
+                        <div class="add-spec-container">
+                            <div class="add-spec-form">
+                                <input type="text" id="specKey" placeholder="Tên thông số">
+                                <input type="text" id="specValue" placeholder="Giá trị">
+                                <button type="button" onclick="addSpecification()">+ Thêm</button>
+                            </div>
+                            <div id="customSpecs"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">🚀 Thêm Sản Phẩm</button>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        let customSpecifications = [];
+        
+        function collectSpecifications() {
+            const specs = {};            
+            // Add custom specs
+            customSpecifications.forEach(spec => {
+                specs[spec.key] = spec.value;
+            });
+            
+            return specs;
+        }
+        
+        function addSpecification() {
+            const key = document.getElementById('specKey').value.trim();
+            const value = document.getElementById('specValue').value.trim();
+            
+            if (!key || !value) {
+                alert('Vui lòng nhập đầy đủ tên và giá trị thông số');
+                return;
+            }
+            
+            // Check if key already exists
+            if (customSpecifications.some(spec => spec.key === key)) {
+                alert('Thông số này đã tồn tại!');
+                return;
+            }
+            
+            customSpecifications.push({ key, value });
+            renderCustomSpecs();
+            
+            // Clear inputs
+            document.getElementById('specKey').value = '';
+            document.getElementById('specValue').value = '';
+        }
+        
+        function removeSpecification(index) {
+            customSpecifications.splice(index, 1);
+            renderCustomSpecs();
+        }
+        
+        function renderCustomSpecs() {
+            const container = document.getElementById('customSpecs');
+            container.innerHTML = customSpecifications.map((spec, index) => `
+                <div class="custom-spec-item">
+                    <span>${spec.key}: ${spec.value}</span>
+                    <button type="button" onclick="removeSpecification(${index})">Xóa</button>
+                </div>
+            `).join('');
+        }
+        
+        // Allow adding spec with Enter key
+        document.getElementById('specValue').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addSpecification();
+            }
+        });
+        
+        document.getElementById('productForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const messageDiv = document.getElementById('message');
+            const loadingDiv = document.getElementById('loading');
+            const submitBtn = document.querySelector('.submit-btn');
+            
+            // Show loading
+            loadingDiv.style.display = 'block';
+            submitBtn.disabled = true;
+            messageDiv.innerHTML = '';
+            
+            try {
+                // Collect form data
+                const formData = new FormData(this);
+                
+                // Convert to product object
+                const productData = {
+                    shopId: formData.get('shopId'),
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    price: parseInt(formData.get('price')),
+                    stock: parseInt(formData.get('stock')) || 0,
+                    category: formData.get('category'),
+                    subcategory: formData.get('subcategory'),
+                    brand: formData.get('brand'),
+                    status: formData.get('status'),
+                    rating: parseFloat(formData.get('rating')) || 0,
+                    reviewCount: parseInt(formData.get('reviewCount')) || 0,
+                    image: formData.get('image'),
+                    images: formData.get('images') ? formData.get('images').split(',').map(img => img.trim()) : [],
+                    tags: formData.get('tags') ? formData.get('tags').split(',').map(tag => tag.trim()) : [],
+                    specifications: collectSpecifications()
+                };
+                
+                // Send to API
+                const response = await fetch('http://localhost:3001/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    messageDiv.innerHTML = '<div class="message success">✅ Sản phẩm đã được thêm thành công!</div>';
+                    
+                    // Reset form after success
+                    setTimeout(() => {
+                        this.reset();
+                        customSpecifications = [];
+                        renderCustomSpecs();
+                        // Restore default values
+                        document.getElementById('shopId').value = 'shop123';
+                        document.getElementById('category').value = 'Điện thoại';
+                        document.getElementById('status').value = 'draft';
+                        document.getElementById('rating').value = '0';
+                        document.getElementById('reviewCount').value = '0';
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Có lỗi xảy ra');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.innerHTML = `<div class="message error">❌ Lỗi: ${error.message}</div>`;
+            } finally {
+                // Hide loading
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // Format price input
+        document.getElementById('price').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value) {
+                e.target.value = parseInt(value);
+            }
+        });
+        
+        // Format stock input
+        document.getElementById('stock').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value) {
+                e.target.value = parseInt(value);
+            }
+        });
+        
+        // Format rating input
+        document.getElementById('rating').addEventListener('input', function(e) {
+            let value = parseFloat(e.target.value);
+            if (value > 5) e.target.value = 5;
+            if (value < 0) e.target.value = 0;
+        });
+    </script>
+</body>
+</html>
