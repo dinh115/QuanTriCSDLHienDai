@@ -187,7 +187,7 @@
             margin-bottom: 20px;
             color: #bdc3c7;
         }
-    </style>
+        </style>
     </head>
     <body>
         <div class="cart-container">
@@ -204,13 +204,16 @@
                     <input
                         type="checkbox"
                         class="item-checkbox"
+                        data-cart-item-id="<%= item.id %>"
+                        data-product-id="<%= item.productId %>"
+                        data-shop-id="<%= item.shopId %>"
+                        data-name="<%= item.name %>"
+                        data-price="<%= item.price %>"
                         <%=lastAddedId === item.id ? 'checked' : '' %>>
 
                     <div class="item-info">
                         <div class="item-name">Sản phẩm: <%= item.name ||
                             'helios_300' %></div>
-                        <div class="item-details">Số lượng: <%= item.quantity ||
-                            1 %></div>
                     </div>
 
                     <div class="quantity-controls">
@@ -264,6 +267,9 @@
         </div>
 
         <script>
+        // Make cartId available globally
+        const cartId = '<%= cartId %>';
+        
         function updateQuantity(itemId, change) {
             const input = document.querySelector(`input[onchange*="${itemId}"]`);
             const currentValue = parseInt(input.value);
@@ -335,8 +341,41 @@
                 return;
             }
             
-            // Redirect to checkout page
-            window.location.href = '/checkout';
+            // Collect selected items data
+            const selectedItems = [];
+            checkedItems.forEach(checkbox => {
+                const cartItem = checkbox.closest('.cart-item');
+                // Extract item data from the DOM or data attributes
+                selectedItems.push({
+    cartItemId: checkbox.dataset.cartItemId,
+    productId: checkbox.dataset.productId,
+    shopId: checkbox.dataset.shopId,
+    name: checkbox.dataset.name,
+    price: parseFloat(checkbox.dataset.price),
+    quantity: parseInt(cartItem.querySelector('.quantity-input').value)
+});
+            });
+            
+            // Create a hidden form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/checkout';
+            form.style.display = 'none';
+
+            // Add cartId
+            const cartIdInput = document.createElement('input');
+            cartIdInput.name = 'cartId';
+            cartIdInput.value = cartId;
+            form.appendChild(cartIdInput);
+
+            // Add selected items
+            const itemsInput = document.createElement('input');
+            itemsInput.name = 'selectedItems';
+            itemsInput.value = JSON.stringify(selectedItems);
+            form.appendChild(itemsInput);
+
+            document.body.appendChild(form);
+            form.submit();
         }
         
         // Handle checkbox selection
@@ -352,6 +391,6 @@
             const checkedItems = document.querySelectorAll('.item-checkbox:checked');
             // Implementation would depend on your data structure
         }
-    </script>
+        </script>
     </body>
 </html>

@@ -12,9 +12,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3006;
 
+app.use(cors({
+    origin: 'http://localhost:5000', // phải chỉ rõ domain FE
+    credentials: true               // cho phép cookie đi kèm
+}));
+
 // Middleware
 app.use(helmet());
-app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

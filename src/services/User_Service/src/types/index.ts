@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Document } from 'mongoose';
+import { Document, StringExpressionOperatorReturningBoolean } from 'mongoose';
 
 export interface IUser extends Document {
     _id: string;
@@ -23,6 +23,7 @@ export interface JWTPayload {
     username: string;
     phone: string;
     address: string;
+    fullname: string;
     dateOfBirth: Date;
     role: string;
     status: string;

@@ -8,7 +8,8 @@ export const createPurchaseSchema = Joi.object({
         Joi.object({
             productId: Joi.string().uuid().required(),
             quantity: Joi.number().integer().min(1).required(),
-            unitPrice: Joi.number().min(0).optional()
+            unitPrice: Joi.number().min(0).optional(),
+            cartItemId: Joi.string().uuid().optional()
         })
     ).optional(),
     paymentMethod: Joi.string().valid(...Object.values(PaymentMethod)).required(),

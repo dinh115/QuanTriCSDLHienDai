@@ -23,6 +23,7 @@ export enum ShippingMethod {
 }
 
 export interface PurchaseItem {
+    cartItemId?: string,
     productId: string;
     shopId: string;
     quantity: number;

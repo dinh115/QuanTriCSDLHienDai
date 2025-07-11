@@ -218,21 +218,45 @@ export class PurchaseService {
         };
     }
 
-    // Main Purchase Service Methods
     async createPurchase(data: CreatePurchaseRequest): Promise<Purchase> {
         // Validate user exists and is active using internal API
         const userData: UserData = await this.externalServiceClient.validateUser(data.userId);
-        //console.log("VALIDATION COMPLETE");
-        // Check if user is active
         if (userData.status !== 'active') {
             throw new Error('User account is not active');
         }
 
         let purchaseItems: PurchaseItem[] = [];
-        //console.log(data.cartId);
-        //console.log(data.items);
-        // Get items from cart or use provided items
-        if (data.cartId) {
+        let shouldDeleteFromCart = false;
+
+        // Case 1: Items provided (with or without cartId)
+        if (data.items && data.items.length > 0) {
+            // Step 1: Validate products (without cartItemId initially)
+            const itemsToValidate = data.items.map(item => ({
+                productId: item.productId,
+                shopId: item.shopId,
+                quantity: item.quantity,
+                unitPrice: 0 // Will be filled by product validation
+            }));
+
+            const validatedItems = await this.externalServiceClient.validateProducts(itemsToValidate);
+
+            // Step 2: Map cartItemId back to the corresponding productId
+            const cartItemMap = new Map(
+                data.items.map(item => [item.productId, item.cartItemId])
+            );
+
+            purchaseItems = validatedItems.map(item => ({
+                ...item,
+                cartItemId: cartItemMap.get(item.productId) || undefined
+            }));
+
+            // If cartId is provided along with items, we should delete those specific items from cart
+            shouldDeleteFromCart = !!data.cartId;
+
+            console.info("ITEMS: " + JSON.stringify(purchaseItems));
+        }
+        // Case 2: Only cartId provided (no items)
+        else if (data.cartId) {
             const cartData = await this.externalServiceClient.getCartData(data.cartId);
             const cartItems = cartData.items.map(item => ({
                 shopId: item.shopId,
@@ -241,17 +265,19 @@ export class PurchaseService {
                 unitPrice: 0 // Will be filled by product validation
             }));
             purchaseItems = await this.externalServiceClient.validateProducts(cartItems);
-        } else if (data.items && data.items.length > 0) {
-            purchaseItems = await this.externalServiceClient.validateProducts(data.items);
-        } else {
+
+            // When only cartId is provided, we purchase all items and should delete them from cart
+            shouldDeleteFromCart = true;
+
+            console.info("CART ITEMS: " + JSON.stringify(purchaseItems));
+        }
+        // Case 3: Neither cartId nor items provided
+        else {
             throw new Error('Either cartId or items must be provided');
         }
 
-        console.log(purchaseItems);
-        // Calculate subtotal
         const subtotal = purchaseItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
-        // Calculate shipping
         const shippingCalculation = this.calculateShipping(
             subtotal,
             data.shippingMethod,
@@ -264,7 +290,6 @@ export class PurchaseService {
             estimatedDelivery: shippingCalculation.estimatedDelivery
         };
 
-        // Handle voucher if provided
         let voucher: VoucherDetails | undefined;
         let discount = 0;
 
@@ -275,10 +300,8 @@ export class PurchaseService {
                     data.userId,
                     subtotal
                 );
-
                 if (voucherValidation.valid) {
                     discount = this.calculateVoucherDiscount(voucherValidation, subtotal);
-
                     voucher = {
                         code: voucherValidation.code,
                         discountType: voucherValidation.discountType,
@@ -291,10 +314,8 @@ export class PurchaseService {
             }
         }
 
-        // Calculate total amount
         const totalAmount = subtotal + shippingDetails.cost - discount;
 
-        // Create purchase
         const purchase = new PurchaseModel({
             userId: data.userId,
             cartId: data.cartId,
@@ -311,31 +332,34 @@ export class PurchaseService {
             billingAddress: data.billingAddress,
             notes: data.notes,
             status: PurchaseStatus.PENDING,
-            // Store user info for easier access
             userInfo: {
                 firstName: userData.firstName,
                 lastName: userData.lastName,
                 email: userData.email
             }
         });
-        console.log(purchase);
 
         const savedPurchase = await purchase.save();
         const purchaseData = savedPurchase.toJSON() as Purchase;
 
-        // Process payment for non-COD orders
-        // Mockup of real Payment systems, no url payment link will be generated.
+        // Process payment (if not COD)
         if (data.paymentMethod !== PaymentMethod.COD) {
             await this.processPayment(purchaseData, data.paymentToken);
         }
 
-        // Clear cart if purchase was created from cart
-        if (data.cartId) {
-            await this.externalServiceClient.clearCart(data.cartId);
+        // Delete items from cart after successful transaction
+        if (shouldDeleteFromCart && data.cartId) {
+            const itemDeletePromises = purchaseItems
+                .filter(item => !!item.cartItemId)
+                .map(item =>
+                    this.externalServiceClient.removeItemFromCart(data.cartId!, item.cartItemId!)
+                );
+            await Promise.all(itemDeletePromises);
         }
 
         return purchaseData;
     }
+
 
     async getPurchaseById(id: string): Promise<Purchase | null> {
         const purchase = await PurchaseModel.findById(id);

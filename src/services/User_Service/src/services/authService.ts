@@ -174,6 +174,7 @@ class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
+      fullname: `${user.firstName} ${user.lastName}`,
       status: user.status,
       phone: user.phone,
       address: user.address,

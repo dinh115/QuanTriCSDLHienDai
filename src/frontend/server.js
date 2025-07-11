@@ -84,7 +84,7 @@ app.get('/cart', async (req, res) => {
   const cartId = req.cookies.cartId;
   try {
     const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
-    console.log(response);
+    //console.log(response);
     const cart = await response.json();
     const cartItems = cart.items || [];
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity || 0), 0);
@@ -92,7 +92,8 @@ app.get('/cart', async (req, res) => {
       cart,
       cartItems,
       total,
-      lastAddedId: req.query.highlight
+      lastAddedId: req.query.highlight,
+      cartId
     });
   } catch (err) {
     console.error('❌ Lỗi khi lấy giỏ hàng:', err);
@@ -185,6 +186,28 @@ app.post('/login', async (req, res) => {
 app.get('/logout', (req, res) => {
   res.clearCookie('token');
   res.redirect('/login');
+});
+
+// --- CHECKOUT ROUTES ---------------
+
+app.post('/checkout', (req, res) => {
+  const { cartId, selectedItems } = req.body;
+
+  // Parse selectedItems (it comes as JSON string)
+  const items = JSON.parse(selectedItems);
+
+  // - cartId: string
+  // - items: Array of {cartItemId, productId, shopId, quantity}
+
+  console.info(req.user);
+  console.info(items);
+
+  res.render('checkout', {
+    cartId,
+    selectedItems: items,
+    user: req.user,
+    token: req.cookies.token
+  });
 });
 
 // --- REVIEW ROUTES (like before) ---
