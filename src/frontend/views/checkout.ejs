@@ -628,7 +628,7 @@ console.log("📦 Final Order Data:", orderData);
 
         if (response.ok && responseBody.success) {
             alert('Đặt hàng thành công!');
-            window.location.href = '/my-order';
+            window.location.href = '/';
         } else {
             alert(`Lỗi đặt hàng: ${response.status} - ${responseBody.message || 'Không rõ nguyên nhân'}`);
         }
