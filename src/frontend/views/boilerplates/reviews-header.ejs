@@ -32,7 +32,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Bắt đầu tải dữ liệu từ API'); // Kiểm tra xem mã có chạy không
         const productId = '<%= productId %>';
-        fetch(`http://localhost:3003/product/${productId}/reviews/summary`)
+        fetch(`http://localhost:3009/product/${productId}/reviews/summary`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

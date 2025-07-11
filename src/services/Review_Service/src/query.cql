@@ -137,6 +137,22 @@ CREATE TABLE product_reviews_new (
     has_reply boolean,
     PRIMARY KEY (masp, mauser)
 );
+
+create table users(
+    userid uuid,
+    username text,
+    role text,
+    PRIMARY KEY (userid)
+    );
+
+create table products(
+    productid uuid,
+    productname text,
+    description text,
+    shopid uuid,
+    PRIMARY KEY(productid)
+);
+
 -- Nhap danh gia san pham
 -- Danh gia co hinh anh, cac truong khong bat buoc nhu phanloai, chatluong, mota_dung
 INSERT INTO product_reviews_new (

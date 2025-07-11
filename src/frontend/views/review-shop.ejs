@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="/styles/bootstrap.css">
     <link rel="stylesheet" href="/styles/main.css">
     <link rel="stylesheet" href="/styles/base.css">
-    <link rel="stylesheet" href="/styles/main.css">
     <link rel="stylesheet" href="/styles/grid.css">
     <link rel="stylesheet" href="/styles/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -56,48 +55,97 @@
         .no-more-reviews.show {
             display: block;
         }
+
+        /* Styles for the reply popup */
+        .reply-popup {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .reply-popup-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+
+        .close-popup {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-popup:hover,
+        .close-popup:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
-    </head>
+</head>
 
-    <body>
-        <div class="container">
-            <%- include('boilerplates/reviews-header') %>
-
-            <div class="reviews-container" id="reviews-container">
-                <% reviews.forEach(review => { %>
+<body>
+    <div class="container">
+        <%- include('boilerplates/reviews-header') %>
+        
+        <div class="reviews-container" id="reviews-container">
+            <% reviews.forEach(review => { %>
                 <%- include('boilerplates/reviews-item', { review: review }) %>
-                <% }) %>
-            </div>
-
-            <!-- Loading spinner -->
-            <div class="loading-spinner" id="loading-spinner">
-                <div class="spinner"></div>
-                <p>Đang tải thêm đánh giá...</p>
-            </div>
-
-            <!-- No more reviews message -->
-            <div class="no-more-reviews" id="no-more-reviews">
-                Không còn bình luận!
-            </div>
+            <% }) %>
         </div>
-        <%- include('boilerplates/footer') %>
+        
+        <!-- Loading spinner -->
+        <div class="loading-spinner" id="loading-spinner">
+            <div class="spinner"></div>
+            <p>Đang tải thêm đánh giá...</p>
+        </div>
+        
+        <!-- No more reviews message -->
+        <div class="no-more-reviews" id="no-more-reviews">
+            Không còn bình luận!
+        </div>
+    </div>
 
-        <script>
+    <!-- Reply Popup Form -->
+    <div id="reply-popup" class="reply-popup">
+        <div class="reply-popup-content">
+            <span class="close-popup">&times;</span>
+            <h2>Phản hồi đánh giá</h2>
+            <form id="reply-form">
+                <input type="hidden" id="reply-product-id" name="productId">
+                <input type="hidden" id="reply-review-id" name="reviewId">
+                <textarea id="reply-content" name="reply_content" rows="4" style="width: 100%;" placeholder="Nhập phản hồi của bạn..." required></textarea>
+                <button type="submit">Gửi phản hồi</button>
+            </form>
+        </div>
+    </div>
+
+    <%- include('boilerplates/footer') %>
+
+    <script>
         let isLoading = false;
         let hasMore = <%= hasMore %>;
         let nextPage = '<%= nextPage %>';
-        let currentFilter = 'all'; // Track current filter
-        // MODIFIED: Get productId from the server-rendered template
+        let currentFilter = 'all'; 
         const productId = '<%= productId %>';
-        // Function to create review item HTML
+
         function createReviewHTML(review) {
-            // Create stars HTML
             let starsHTML = '';
             for (let i = 1; i <= 5; i++) {
                 starsHTML += `<span class="star ${i <= review.rating ? 'filled' : ''}">★</span>`;
             }
             
-            // Create images HTML
             let imagesHTML = '';
             if (review.images && review.images.length > 0) {
                 imagesHTML = '<div class="review-images">';
@@ -105,8 +153,8 @@
                     imagesHTML += `
                         <div class="image-container">
                             <img src="${image}" alt="Review image ${index + 1}"
-                                onload="this.nextElementSibling.style.display='none';" 
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 onload="this.nextElementSibling.style.display='none';" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="image-placeholder">
                                 ${index === 0 ? '📷' : '🖼️'}
                             </div>
@@ -116,7 +164,6 @@
                 imagesHTML += '</div>';
             }
             
-            // Create response HTML
             let responseHTML = '';
             if (review.response) {
                 responseHTML = `
@@ -126,9 +173,14 @@
                     </div>
                 `;
             }
+
+            let replyButtonHTML = '';
+            if (!review.response) {
+                replyButtonHTML = `<button class="reply-to-review-btn" data-product-id="${review.masp}" data-review-id="${review.mauser}">Phản hồi đánh giá của khách hàng</button>`;
+            }
             
             return `
-                <div class="review-item">
+                <div class="review-item" data-review-item-id="${review.mauser}">
                     <div class="review-header">
                         <div class="user-avatar">
                             <img src="/images/default-avatar.png" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -155,13 +207,15 @@
                         <div class="review-text">${review.content}</div>
                         
                         ${imagesHTML}
-                        ${responseHTML}
+                        <div class="seller-response-container">
+                            ${responseHTML}
+                        </div>
+                        ${replyButtonHTML}
                     </div>
                 </div>
             `;
         }
         
-        // Function to load reviews with filter
         async function loadReviews(filter = 'all', pageState = null, append = false) {
             if (isLoading) return;
             
@@ -181,23 +235,18 @@
                     const reviewsContainer = document.getElementById('reviews-container');
                     
                     if (!append) {
-                        // Clear existing reviews for new filter
                         reviewsContainer.innerHTML = '';
-                        // Hide "no more reviews" message
                         document.getElementById('no-more-reviews').classList.remove('show');
                     }
                     
-                    // Add new reviews to the container
                     data.reviews.forEach(review => {
                         reviewsContainer.insertAdjacentHTML('beforeend', createReviewHTML(review));
                     });
                     
-                    // Update pagination state
                     nextPage = data.nextPage;
                     hasMore = data.hasMore;
                     currentFilter = filter;
                     
-                    // Show "no more reviews" message if no more data
                     if (!hasMore) {
                         document.getElementById('no-more-reviews').classList.add('show');
                     }
@@ -210,30 +259,24 @@
             }
         }
         
-        // Function to load more reviews (for infinite scroll)
         async function loadMoreReviews() {
             if (isLoading || !hasMore) return;
             
             await loadReviews(currentFilter, nextPage, true);
         }
         
-        // Filter button click handlers
         document.addEventListener('DOMContentLoaded', function() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Remove active class from all buttons
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     
-                    // Add active class to clicked button
                     this.classList.add('active');
                     
-                    // Get filter from data attribute or fallback to text parsing
                     let filter = this.getAttribute('data-filter');
                     
                     if (!filter) {
-                        // Fallback to text parsing if data attribute is not available
                         const buttonText = this.textContent.toLowerCase();
                         
                         if (buttonText.includes('5 sao')) {
@@ -253,24 +296,92 @@
                         }
                     }
                     
-                    // Load reviews with new filter
                     loadReviews(filter);
                 });
             });
+
+            // Reply popup logic
+            const popup = document.getElementById('reply-popup');
+            const closeBtn = document.querySelector('.close-popup');
+            const replyForm = document.getElementById('reply-form');
+            const reviewsContainer = document.getElementById('reviews-container');
+
+            reviewsContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('reply-to-review-btn')) {
+                    const productId = e.target.dataset.productId;
+                    const reviewId = e.target.dataset.reviewId;
+
+                    document.getElementById('reply-product-id').value = productId;
+                    document.getElementById('reply-review-id').value = reviewId;
+                    popup.style.display = 'block';
+                }
+            });
+
+            closeBtn.onclick = function() {
+                popup.style.display = 'none';
+            }
+
+            window.onclick = function(event) {
+                if (event.target == popup) {
+                    popup.style.display = 'none';
+                }
+            }
+
+            replyForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const productId = document.getElementById('reply-product-id').value;
+                const reviewId = document.getElementById('reply-review-id').value;
+                const replyContent = document.getElementById('reply-content').value;
+
+                try {
+                    const response = await fetch(`/product/${productId}/reviews/${reviewId}/reply`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ reply_content: replyContent })
+                    });
+
+                    if (response.ok) {
+                        popup.style.display = 'none';
+                        replyForm.reset();
+
+                        // Update the UI
+                        const reviewItem = document.querySelector(`.review-item[data-review-item-id="${reviewId}"]`);
+                        if(reviewItem) {
+                            const responseContainer = reviewItem.querySelector('.seller-response-container');
+                            responseContainer.innerHTML = `
+                                <div class="seller-response">
+                                    <div class="response-header">Phản Hồi Của Người Bán</div>
+                                    <div class="response-content">${replyContent}</div>
+                                </div>
+                            `;
+                            const replyButton = reviewItem.querySelector('.reply-to-review-btn');
+                            if(replyButton) {
+                                replyButton.remove();
+                            }
+                        }
+
+                    } else {
+                        alert('Gửi phản hồi thất bại!');
+                    }
+                } catch (error) {
+                    console.error('Error submitting reply:', error);
+                    alert('Đã có lỗi xảy ra.');
+                }
+            });
         });
         
-        // Scroll event listener for infinite scrolling
         window.addEventListener('scroll', function() {
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
                 loadMoreReviews();
             }
         });
         
-        // Show "no more reviews" message on initial load if no more data
         if (!hasMore) {
             document.getElementById('no-more-reviews').classList.add('show');
         }
     </script>
-
-    </body>
+    
+</body>
 </html>
