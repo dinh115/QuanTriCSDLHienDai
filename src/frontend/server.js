@@ -30,6 +30,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(async (req, res, next) => {
+  const cartId = req.cookies.cartId;
+  let cartItems = [];
+
+  try {
+    const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
+    const cart = await response.json();
+    cartItems = cart.items || [];
+  } catch (err) {
+    console.error('Không thể lấy cart:', err);
+  }
+
+  res.locals.cartItems = cartItems;
+  next();
+});
 
 // Middleware gán cartId nếu chưa có
 app.use((req, res, next) => {
@@ -141,6 +156,7 @@ app.get('/', async (req, res) => { // Make the route handler async
 });
 
 // --- CART ROUTES ---
+// Get cart
 app.get('/cart', async (req, res) => {
   const cartId = req.cookies.cartId;
   try {
@@ -167,6 +183,7 @@ app.get('/cart', async (req, res) => {
   }
 });
 
+// Add item to cart
 app.post('/cart/add', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { productId, quantity, shopId, name, price } = req.body;
@@ -181,6 +198,7 @@ app.post('/cart/add', async (req, res) => {
   res.redirect(`/cart?highlight=${newItemId}`);
 });
 
+// Update item quantity in cart
 app.post('/cart/update', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId, quantity } = req.body;
@@ -205,6 +223,7 @@ app.post('/cart/update', async (req, res) => {
   }
 });
 
+// Remove item from cart
 app.post('/cart/remove', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId } = req.body;
