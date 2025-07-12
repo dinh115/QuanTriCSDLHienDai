@@ -94,7 +94,7 @@ export class ExternalServiceClient {
             console.info("REMOVE ITEM WAS CALL: " + cartId + ' ' + productId);
             await axios.delete(`${this.cartServiceUrl}/carts/${cartId}/items/${productId}`);
         } catch (error) {
-            console.error('❌ Failed to delete purchased item from cart:', error);
+            console.error('Failed to delete purchased item from cart:', error);
         }
     }
 

@@ -349,12 +349,15 @@ export class PurchaseService {
 
         // Delete items from cart after successful transaction
         if (shouldDeleteFromCart && data.cartId) {
-            const itemDeletePromises = purchaseItems
-                .filter(item => !!item.cartItemId)
-                .map(item =>
-                    this.externalServiceClient.removeItemFromCart(data.cartId!, item.cartItemId!)
-                );
-            await Promise.all(itemDeletePromises);
+            for (const item of purchaseItems) {
+                if (item.cartItemId) {
+                    try {
+                        await this.externalServiceClient.removeItemFromCart(data.cartId!, item.cartItemId);
+                    } catch (err) {
+                        console.error('Failed to remove item:', item.cartItemId, err);
+                    }
+                }
+            }
         }
 
         return purchaseData;

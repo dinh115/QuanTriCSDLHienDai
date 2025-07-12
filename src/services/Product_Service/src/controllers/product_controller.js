@@ -111,7 +111,10 @@ export async function createProduct(req, res) {
         }
 
         if (!productData.shopId) {
-            productData.shopId = "9cd5118a-b3e1-598d-a1a7-e48188993d46"
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required field: shopId'
+            });
         }
 
         const product = await ProductModel.createProduct(productData);

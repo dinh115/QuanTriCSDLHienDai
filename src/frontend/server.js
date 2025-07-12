@@ -165,11 +165,6 @@ app.post('/addProduct', upload.array('images', 10), async (req, res) => {
   // Force JSON response
   res.setHeader('Content-Type', 'application/json');
   
-  console.log('=== ADD PRODUCT ROUTE HIT ===');
-  console.log('User:', req.user);
-  console.log('Body:', req.body);
-  console.log('Files:', req.files?.map(f => f.filename));
-  
   if (!req.user) {
     console.log('No user found, returning 401');
     return res.status(401).json({
@@ -189,7 +184,7 @@ app.post('/addProduct', upload.array('images', 10), async (req, res) => {
     }
     
     const productData = {
-      shopId: req.body.shopId,
+      shopId: req.user.userId,
       name: req.body.name,
       description: req.body.description,
       price: parseFloat(req.body.price),
@@ -359,8 +354,8 @@ app.get('/cart', async (req, res) => {
       cart,
       cartItems,
       total,
-      user: req.user,
-      lastAddedId: req.query.highlight
+      lastAddedId: req.query.highlight,
+      cartId
     });
   } catch (err) {
     console.error('Lỗi khi lấy giỏ hàng:', err);
@@ -376,12 +371,15 @@ app.get('/cart', async (req, res) => {
 
 // Add item to cart
 app.post('/cart/add', async (req, res) => {
+  console.info("lmao");
   const cartId = req.cookies.cartId;
+  const userId = req.user.userId;
+  console.info(req.user);
   const { productId, quantity, shopId, name, price } = req.body;
   const response = await fetch(`http://cart-service:3004/carts/${cartId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId, quantity, shopId, name, price })
+    body: JSON.stringify({userId, productId, quantity, shopId, name, price })
   });
   const result = await response.json();
   if (!result || !result.cart || !Array.isArray(result.cart.items)) return;
@@ -670,7 +668,7 @@ app.get('/product/:productId/review-form', async (req, res) => {
       productDetails = await response.json();
     }
   } catch (error) {
-    console.error('❌ Error fetching product details for review form:', error);
+    console.error('Error fetching product details for review form:', error);
     // If the review service is down or there's a network error, productDetails will remain null
   }
 
@@ -696,8 +694,8 @@ app.post('/product/:productId/reviews', upload.array('images', 5), async (req, r
 
   // Construct the payload for your backend API
   const payload = {
-    mauser: "dda14db3-f64e-4c66-bc60-e02b061761b2", // session dummy
-    username: "username", // session dummy
+    mauser: req.user.userId, // session dummy
+    username: req.user.username,
     rating: parseInt(rating, 10), // Ensure rating is a number
     phanloai,
     chatluong,
