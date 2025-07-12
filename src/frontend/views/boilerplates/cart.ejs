@@ -227,7 +227,7 @@
                             onclick="updateQuantity('<%= item.id %>', 1)">+</button>
                     </div>
 
-                    <div class="item-price">
+                    <div class="item-price" data-price="<%= item.price %>">
                         <%= (item.price || 0).toLocaleString('vi-VN') %>đ
                     </div>
 
@@ -277,27 +277,21 @@
             input.value = newValue;
             setQuantity(itemId, newValue);
         }
-        
+
         function setQuantity(itemId, quantity) {
             quantity = Math.max(1, parseInt(quantity));
-            
-            // Send AJAX request to update quantity
+
             fetch('/cart/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    itemId: itemId,
-                    quantity: quantity
-                })
+                body: JSON.stringify({ itemId, quantity, cartId })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update total price
-                    document.getElementById('total-price').textContent = 
-                        data.total.toLocaleString('vi-VN') + 'đ';
+                    updateTotal();
                 } else {
                     alert('Có lỗi xảy ra khi cập nhật số lượng');
                 }
@@ -307,7 +301,7 @@
                 alert('Có lỗi xảy ra khi cập nhật số lượng');
             });
         }
-        
+
         function removeItem(itemId) {
             if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
                 fetch('/cart/remove', {
@@ -387,9 +381,17 @@
         });
         
         function updateTotal() {
-            // Calculate total for selected items only
             const checkedItems = document.querySelectorAll('.item-checkbox:checked');
-            // Implementation would depend on your data structure
+            let total = 0;
+
+            checkedItems.forEach(checkbox => {
+                const itemDiv = checkbox.closest('.cart-item');
+                const price = parseInt(itemDiv.querySelector('.item-price').dataset.price);
+                const quantity = parseInt(itemDiv.querySelector('.quantity-input').value);
+                total += price * quantity;
+            });
+
+            document.getElementById('total-price').textContent = total.toLocaleString('vi-VN') + 'đ';
         }
         </script>
     </body>

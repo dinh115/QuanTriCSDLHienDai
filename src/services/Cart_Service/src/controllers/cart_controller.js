@@ -12,7 +12,7 @@ export async function getCart(req, res) {
     const cart = JSON.parse(cartData);
     res.json(cart);
   } catch (err) {
-    console.error('❌ Lỗi khi lấy giỏ hàng:', err);
+    console.error('Lỗi khi lấy giỏ hàng:', err);
     res.status(500).json({ error: 'Lỗi server' });
   }
 }
@@ -44,24 +44,30 @@ export async function addItemToCart(req, res) {
       };
     }
 
-    const newItem = {
-      id: uuidv4(),
-      shopId,
-      productId,
-      quantity: parseInt(quantity),
-      name,
-      price: parseInt(price),
-      addedAt: new Date().toISOString()
-    };
+    // 🔍 Kiểm tra xem sản phẩm đã có trong giỏ chưa
+    const existingItem = cart.items.find(item => item.productId === productId);
 
-    cart.items.push(newItem);
+    if (existingItem) {
+      existingItem.quantity += parseInt(quantity);
+      existingItem.updatedAt = new Date().toISOString();
+    } else {
+      const newItem = {
+        productId: productId,
+        shopId,
+        quantity: parseInt(quantity),
+        name,
+        price: parseInt(price),
+        addedAt: new Date().toISOString()
+      };
+      cart.items.push(newItem);
+    }
+
     cart.updatedAt = new Date().toISOString();
-
     await redisClient.set(cartKey, JSON.stringify(cart));
 
-    res.status(201).json({ message: '✅ Đã thêm sản phẩm vào giỏ', cart });
+    res.status(201).json({ message: 'Đã thêm sản phẩm vào giỏ', cart });
   } catch (err) {
-    console.error('❌ Lỗi khi thêm vào giỏ:', err);
+    console.error('Lỗi khi thêm vào giỏ:', err);
     res.status(500).json({ error: 'Lỗi server' });
   }
 }
@@ -76,7 +82,7 @@ export async function updateCart(req, res) {
     await redisClient.set(cartKey, JSON.stringify(updatedCart));
     res.json(updatedCart);
   } catch (err) {
-    console.error('❌ Lỗi khi cập nhật giỏ hàng:', err);
+    console.error('Lỗi khi cập nhật giỏ hàng:', err);
     res.status(500).json({ error: 'Lỗi server' });
   }
 }
