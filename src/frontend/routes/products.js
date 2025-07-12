@@ -7,7 +7,7 @@ const axios = require('axios');
 const PRODUCT_SERVICE_URL = 'http://localhost:3001';
 
 // Get products with filtering and pagination
-router.get('/api/products', async (req, res) => {
+router.get('/products', async (req, res) => {
     try {
         const {
             page = 1,
@@ -30,7 +30,7 @@ router.get('/api/products', async (req, res) => {
         if (search) params.append('search', search);
 
         // Call product service
-        const response = await axios.get(`${PRODUCT_SERVICE_URL}/api/products?${params}`);
+        const response = await axios.get(`${PRODUCT_SERVICE_URL}/products?${params}`);
         
         // Return formatted response
         res.json({
@@ -53,9 +53,9 @@ router.get('/api/products', async (req, res) => {
 });
 
 // Get product categories
-router.get('/api/products/categories', async (req, res) => {
+router.get('/products/categories', async (req, res) => {
     try {
-        const response = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/categories`);
+        const response = await axios.get(`${PRODUCT_SERVICE_URL}/products/categories`);
         
         res.json({
             success: true,
@@ -73,10 +73,10 @@ router.get('/api/products/categories', async (req, res) => {
 });
 
 // Get single product
-router.get('/api/products/:id', async (req, res) => {
+router.get('/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const response = await axios.get(`${PRODUCT_SERVICE_URL}/api/products/${id}`);
+        const response = await axios.get(`${PRODUCT_SERVICE_URL}/products/${id}`);
         
         res.json({
             success: true,
@@ -94,7 +94,7 @@ router.get('/api/products/:id', async (req, res) => {
 });
 
 // Search products
-router.get('/api/products/search', async (req, res) => {
+router.get('/products/search', async (req, res) => {
     try {
         const {
             q: query,
@@ -121,7 +121,7 @@ router.get('/api/products/search', async (req, res) => {
         if (category) params.append('category', category);
         if (sort) params.append('sort', sort);
 
-        const response = await axios.get(`${PRODUCT_SERVICE_URL}/api/products?${params}`);
+        const response = await axios.get(`${PRODUCT_SERVICE_URL}/products?${params}`);
         
         res.json({
             success: true,
@@ -144,7 +144,7 @@ router.get('/api/products/search', async (req, res) => {
 });
 
 // Get products by brand
-router.get('/api/products/brand/:brand', async (req, res) => {
+router.get('/products/brand/:brand', async (req, res) => {
     try {
         const { brand } = req.params;
         const {
@@ -162,7 +162,7 @@ router.get('/api/products/brand/:brand', async (req, res) => {
 
         if (sort) params.append('sort', sort);
 
-        const response = await axios.get(`${PRODUCT_SERVICE_URL}/api/products?${params}`);
+        const response = await axios.get(`${PRODUCT_SERVICE_URL}/products?${params}`);
         
         res.json({
             success: true,

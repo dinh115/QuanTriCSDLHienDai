@@ -70,14 +70,14 @@ export async function getProductById(req, res) {
     try {
         const { id } = req.params;
         const product = await ProductModel.findProductById(id);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
             });
         }
-        
+
         res.json({
             success: true,
             data: product
@@ -94,15 +94,26 @@ export async function getProductById(req, res) {
 export async function createProduct(req, res) {
     try {
         const productData = req.body;
-        
+
         // Validate required fields
-        if (!productData.name || !productData.price || !productData.shopId) {
+        if (!productData.name) {
             return res.status(400).json({
                 success: false,
-                message: 'Missing required fields: name, price, shopId'
+                message: 'Missing required field: name'
             });
         }
-        
+
+        if (!productData.price) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required field: price'
+            });
+        }
+
+        if (!productData.shopId) {
+            productData.shopId = "9cd5118a-b3e1-598d-a1a7-e48188993d46"
+        }
+
         const product = await ProductModel.createProduct(productData);
         res.status(201).json({
             success: true,
@@ -122,16 +133,16 @@ export async function updateProduct(req, res) {
     try {
         const { id } = req.params;
         const updateData = req.body;
-        
+
         const product = await ProductModel.updateProduct(id, updateData);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
             });
         }
-        
+
         res.json({
             success: true,
             message: 'Product updated successfully',
@@ -150,14 +161,14 @@ export async function deleteProduct(req, res) {
     try {
         const { id } = req.params;
         const product = await ProductModel.deleteProduct(id);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
             });
         }
-        
+
         res.json({
             success: true,
             message: 'Product deleted successfully'
@@ -178,7 +189,7 @@ export async function getProductsByShop(req, res) {
             status: req.query.status,
             category: req.query.category
         };
-        
+
         const products = await ProductModel.getProductsByShop(shopId, filters);
         res.json({
             success: true,
@@ -198,23 +209,23 @@ export async function updateProductStock(req, res) {
     try {
         const { id } = req.params;
         const { stock } = req.body;
-        
+
         if (typeof stock !== 'number' || stock < 0) {
             return res.status(400).json({
                 success: false,
                 message: 'Stock must be a non-negative number'
             });
         }
-        
+
         const product = await ProductModel.updateProductStock(id, stock);
-        
+
         if (!product) {
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
             });
         }
-        
+
         res.json({
             success: true,
             message: 'Stock updated successfully',
@@ -232,14 +243,14 @@ export async function updateProductStock(req, res) {
 export async function validateProducts(req, res) {
     try {
         const { productIds } = req.body;
-        
+
         if (!Array.isArray(productIds) || productIds.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: 'productIds must be a non-empty array'
             });
         }
-        
+
         const result = await ProductModel.validateProducts(productIds);
 
         // Map lại dữ liệu hợp lệ thành định dạng mong muốn
@@ -261,6 +272,22 @@ export async function validateProducts(req, res) {
                 validCount: validProducts.length,
                 invalidCount: result.invalid.length
             }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+// Get unique categories
+export async function getCategories(req, res) {
+    try {
+        const categories = await ProductModel.getAllCategories();
+        res.json({
+            success: true,
+            data: categories
         });
     } catch (error) {
         res.status(500).json({

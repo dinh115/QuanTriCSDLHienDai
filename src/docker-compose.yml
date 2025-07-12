@@ -4,7 +4,9 @@ services:
     container_name: redis
     ports:
       - "6380:6379"
-  
+    networks:
+      - internal
+
   redis_user:
     image: redis:latest
     container_name: redis_user
@@ -13,19 +15,10 @@ services:
     networks:
       - internal
 
-  gateway:
-    build: ./services/gateway
-    ports:
-      - "3000:3000"
-    depends_on:
-      - product-service
-      - user-service
-    networks:
-      - internal
-
   product-service:
     build:
       context: ./services/Product_Service
+    container_name: product-service
     ports:
       - "3001:3001"
     depends_on:
@@ -35,26 +28,28 @@ services:
 
   user-service:
     build: ./services/User_Service
+    container_name: user-service
     ports:
       - "3002:3002"
     environment:
       - NODE_ENV=development
       - PORT=3002
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=24h]
-    networks:
-      - internal
+      - JWT_EXPIRES_IN=24h
     volumes:
       - ./logs:/app/logs
+    networks:
+      - internal
 
   purchase-service:
     build: ./services/Purchase_Service
+    container_name: purchase-service
     ports:
       - "3006:3006"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo:27017/purchase_service
-      - USER_SERVICE_URL=http://user-service:3002
+      - USER_SERVICE_URL=http://user-service:3002/api
       - PRODUCT_SERVICE_URL=http://product-service:3001
       - PAYMENT_SERVICE_URL=http://payment-service:3003
       - CART_SERVICE_URL=http://cart-service:3004
@@ -73,6 +68,7 @@ services:
 
   payment-service:
     build: ./services/Payment_Service
+    container_name: payment-service
     ports:
       - "3003:3003"
     environment:
@@ -82,16 +78,36 @@ services:
       - internal
 
   cart-service:
-    container_name: cart_service
+    container_name: cart-service
     build:
       context: ./services/Cart_Service
     ports:
       - "3004:3004"
     depends_on:
       - redis
-
+    networks:
+      - internal
+  review-service:
+    build:
+      context: ./services/Review_Service
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=development
+      - PORT=3009
+      - CASSANDRA_CONTACT_POINTS=cassandra-node-1
+      - CASSANDRA_DATACENTER=datacenter1
+      - CASSANDRA_KEYSPACE=review_data
+    depends_on:
+      cassandra-docker:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: always
+  
   # voucher-service:
   #   build: ./services/Voucher_Service
+  #   container_name: voucher-service
   #   ports:
   #     - "3005:3005"
   #   environment:
@@ -110,6 +126,29 @@ services:
     networks:
       - internal
 
+  cassandra-docker:
+    image: cassandra:latest
+    container_name: cassandra-node-1
+    hostname: cassandra-node-1
+    ports:
+      - "9042:9042" # CQL native port
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCassandraCluster
+      - CASSANDRA_NUM_TOKENS=256
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+    volumes:
+      - cassandra_data:/var/lib/cassandra # Persistent data volume
+      - ./init.cql:/docker-entrypoint-initdb.d/init.cql # Mount init script
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -u cassandra -p cassandra --debug -e 'describe keyspaces' > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+    restart: always
+
   frontend:
     container_name: frontend
     build:
@@ -117,10 +156,22 @@ services:
     ports:
       - "5000:5000"
     depends_on:
+      - product-service
+      - user-service
+      - purchase-service
+      - payment-service
       - cart-service
+      - review-service
+    volumes:
+      - ./frontend:/app        # ánh xạ mã nguồn vào /app trong container
+      - /app/node_modules       # tránh ghi đè node_modules trong container
+    networks:
+      - internal
+
 
 volumes:
   mongo_data:
+  cassandra_data:
 
 networks:
   internal:

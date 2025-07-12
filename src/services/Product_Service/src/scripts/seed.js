@@ -117,8 +117,8 @@ const descriptionTemplates = [
 // Sinh thông số kỹ thuật ngẫu nhiên
 function generateSpecs(category) {
     const specs = {};
-    
-    switch(category) {
+
+    switch (category) {
         case 'Điện tử':
             specs.thờiLượngPin = `${Math.floor(Math.random() * 48) + 4} giờ`;
             specs.bảoHành = `${Math.floor(Math.random() * 3) + 1} năm`;
@@ -138,7 +138,7 @@ function generateSpecs(category) {
             specs.bảoHành = `${Math.floor(Math.random() * 2) + 1} năm`;
             specs.trọngLượng = `${Math.floor(Math.random() * 1000) + 100}g`;
     }
-    
+
     return specs;
 }
 
@@ -157,22 +157,22 @@ function generateTags(category, productName) {
         'Thực phẩm & Đồ uống': ['lành mạnh', 'hữu cơ', 'tự nhiên', 'tươi', 'ngon'],
         'Đồ dùng thú cưng': ['an toàn', 'dinh dưỡng', 'bền', 'thoải mái', 'tự nhiên']
     };
-    
+
     const tags = [];
-    
+
     // Thêm 2-3 thẻ chung
     for (let i = 0; i < Math.floor(Math.random() * 2) + 2; i++) {
         const tag = commonTags[Math.floor(Math.random() * commonTags.length)];
         if (!tags.includes(tag)) tags.push(tag);
     }
-    
+
     // Thêm 1-2 thẻ theo danh mục
     const catTags = categoryTags[category] || [];
     for (let i = 0; i < Math.floor(Math.random() * 2) + 1; i++) {
         const tag = catTags[Math.floor(Math.random() * catTags.length)];
         if (!tags.includes(tag)) tags.push(tag);
     }
-    
+
     return tags;
 }
 
@@ -190,34 +190,34 @@ function generateImageUrls(category, count = 3) {
         'Thực phẩm & Đồ uống': ['thực phẩm', 'đồ uống', 'ẩm thực'],
         'Đồ dùng thú cưng': ['thú cưng', 'động vật', 'chăm sóc']
     };
-    
-    const keyword = imageKeywords[category] ? 
-        imageKeywords[category][Math.floor(Math.random() * imageKeywords[category].length)] : 
+
+    const keyword = imageKeywords[category] ?
+        imageKeywords[category][Math.floor(Math.random() * imageKeywords[category].length)] :
         'sản phẩm';
-    
+
     const images = [];
     for (let i = 0; i < count; i++) {
         images.push(`https://images.unsplash.com/photo-${Math.floor(Math.random() * 9000000000) + 1000000000}-${Math.floor(Math.random() * 9000000000) + 1000000000}?w=500&q=80&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`);
     }
-    
+
     return "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9jukzvyc226f8.webp";
 }
 
 // Sinh chủ shop (user_101 đến user_3100)
 function generateShopOwners() {
     const shopOwners = [];
-    
+
     for (let i = 101; i <= 3100; i++) {
         const username = `user_${i}`;
         const userId = generateUserId(username);
-        
+
         // Sinh tên shop
         const shopPrefixes = ['Cửa hàng', 'Siêu thị', 'Boutique', 'Chợ', 'Phòng trưng bày', 'Trung tâm', 'Plaza'];
         const shopSuffixes = ['Express', 'Plus', 'Pro', 'Prime', 'Elite', 'Max', 'Super', 'Mega'];
         const shopName = `${shopPrefixes[Math.floor(Math.random() * shopPrefixes.length)]} ${username.replace('_', ' ')} ${shopSuffixes[Math.floor(Math.random() * shopSuffixes.length)]}`;
-        
+
         const shopId = generateShopId(shopName);
-        
+
         shopOwners.push({
             userId,
             username,
@@ -226,7 +226,7 @@ function generateShopOwners() {
             productsCount: Math.floor(Math.random() * 10) + 1 // 1-10 sản phẩm mỗi shop
         });
     }
-    
+
     return shopOwners;
 }
 
@@ -234,60 +234,60 @@ function generateShopOwners() {
 function generateProducts() {
     const shopOwners = generateShopOwners();
     const products = [];
-    
+
     console.log(`Đang tạo sản phẩm cho ${shopOwners.length} cửa hàng...`);
-    
+
     shopOwners.forEach((shop, shopIndex) => {
         console.log(`Tạo sản phẩm cho cửa hàng ${shopIndex + 1}/${shopOwners.length}: ${shop.shopName}`);
-        
+
         for (let i = 0; i < shop.productsCount; i++) {
             // Chọn danh mục ngẫu nhiên
             const categoryKeys = Object.keys(categories);
             const category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
             const subcategory = categories[category][Math.floor(Math.random() * categories[category].length)];
-            
+
             // Chọn thương hiệu ngẫu nhiên
             const categoryBrands = brands[category] || ['Không thương hiệu', 'Chung', 'Phổ thông'];
             const brand = categoryBrands[Math.floor(Math.random() * categoryBrands.length)];
-            
+
             // Sinh tên sản phẩm
             const nameTemplates = productNameTemplates[category] || ['Sản phẩm'];
             const baseName = nameTemplates[Math.floor(Math.random() * nameTemplates.length)];
             const name = `${brand} ${baseName} ${Math.floor(Math.random() * 1000) + 1}`;
-            
+
             // Sinh ID sản phẩm
             const productId = generateProductId(name, shop.shopId);
-            
+
             // Sinh mô tả
             const description = descriptionTemplates[Math.floor(Math.random() * descriptionTemplates.length)];
-            
+
             // Sinh giá (1000 - 50000000 VND)
             const price = Math.floor(Math.random() * 49999000) + 1000;
-            
+
             // Sinh số lượng tồn kho
             const stock = Math.floor(Math.random() * 1000) + 1;
-            
+
             // Sinh hình ảnh
             const images = generateImageUrls(category, Math.floor(Math.random() * 4) + 2);
-            
+
             // Sinh đánh giá và số lượng đánh giá
             const rating = Math.round((Math.random() * 2 + 3) * 10) / 10; // 3.0 - 5.0
             const reviewCount = Math.floor(Math.random() * 5000) + 1;
-            
+
             // Sinh thẻ tag
             const tags = generateTags(category, name);
-            
+
             // Sinh thông số kỹ thuật
             const specifications = generateSpecs(category);
-            
+
             // Sinh trạng thái
             const statuses = ['active', 'inactive', 'out_of_stock'];
             const status = statuses[Math.floor(Math.random() * statuses.length)];
-            
+
             // Sinh ngày tạo và cập nhật
             const createdAt = new Date(Date.now() - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000)); // Trong vòng 1 năm
             const updatedAt = new Date(createdAt.getTime() + Math.floor(Math.random() * (Date.now() - createdAt.getTime())));
-            
+
             const product = {
                 id: productId,
                 shopId: shop.shopId,
@@ -308,11 +308,11 @@ function generateProducts() {
                 createdAt,
                 updatedAt
             };
-            
+
             products.push(product);
         }
     });
-    
+
     return products;
 }
 
@@ -321,16 +321,16 @@ async function seedProducts() {
     try {
         console.log('Kết nối cơ sở dữ liệu...');
         await connectDB();
-        
+
         console.log('Xóa sản phẩm cũ...');
         await Product.deleteMany({});
-        
+
         console.log('Đang tạo sản phẩm...');
         const products = generateProducts();
-        
+
         console.log(`Đã tạo ${products.length} sản phẩm`);
         console.log('Đang thêm sản phẩm vào cơ sở dữ liệu...');
-        
+
         // Thêm theo lô để tránh tràn bộ nhớ
         const batchSize = 1000;
         for (let i = 0; i < products.length; i += batchSize) {
@@ -338,27 +338,27 @@ async function seedProducts() {
             await Product.insertMany(batch);
             console.log(`Đã thêm lô ${Math.floor(i / batchSize) + 1}/${Math.ceil(products.length / batchSize)}`);
         }
-        
+
         console.log(`Seed thành công ${products.length} sản phẩm!`);
-        
+
         // Thống kê
         const categoryStats = {};
         const shopStats = {};
-        
+
         products.forEach(product => {
             categoryStats[product.category] = (categoryStats[product.category] || 0) + 1;
             shopStats[product.shopId] = (shopStats[product.shopId] || 0) + 1;
         });
-        
+
         console.log('\n=== Thống kê ===');
         console.log('Số lượng sản phẩm theo danh mục:');
         Object.entries(categoryStats).forEach(([category, count]) => {
             console.log(`  ${category}: ${count} sản phẩm`);
         });
-        
+
         console.log(`\nTổng số cửa hàng có sản phẩm: ${Object.keys(shopStats).length}`);
         console.log(`Trung bình sản phẩm mỗi cửa hàng: ${Math.round(products.length / Object.keys(shopStats).length)}`);
-        
+
         process.exit(0);
     } catch (error) {
         console.error('Lỗi khi seed sản phẩm:', error);

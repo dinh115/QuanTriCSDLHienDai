@@ -6,6 +6,9 @@ const router = express.Router();
 // Get all products (with optional filters)
 router.get('/', ProductController.getProducts);
 
+// Route phải đặt trước router.get('/:id', ...)
+router.get('/categories', ProductController.getCategories);
+
 // Get single product by ID
 router.get('/:id', ProductController.getProductById);
 

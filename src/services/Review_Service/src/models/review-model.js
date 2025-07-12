@@ -13,7 +13,8 @@ class ReviewModel {
   // }
   static async getReviewsSummaryByProductId(productId) {
     //const query = 'SELECT * FROM product_review_summary WHERE masp = ?';
-    const query = 'SELECT * FROM product_review_summary_test WHERE masp = ?';
+    //const query = 'SELECT * FROM product_review_summary_test WHERE masp = ?';
+    const query = 'SELECT * FROM productReviewsSummary WHERE masp = ?';
     try {
       const result = await client.execute(query, [productId], { prepare: true });
       return result.rows;
@@ -24,7 +25,8 @@ class ReviewModel {
   }
   static async getReviewsByProductId(productId, pageState) {
     //const query = 'SELECT * FROM product_reviews_new WHERE masp = ?';
-    const query = 'SELECT * FROM product_reviews_test WHERE masp = ?';
+    //const query = 'SELECT * FROM product_reviews_test WHERE masp = ?';
+    const query = 'SELECT * FROM productReviews WHERE masp = ?';
     const options = { 
       prepare: true,
       fetchSize: 6 // Number of results per page
@@ -47,7 +49,8 @@ class ReviewModel {
   }
   static async getReviewsByRating(productId, rating, pageState) {
     //const query = 'SELECT * FROM product_reviews_new WHERE masp = ? AND rating = ? ALLOW FILTERING';
-    const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND rating = ? ALLOW FILTERING';
+    //const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND rating = ? ALLOW FILTERING';
+    const query = 'SELECT * FROM productReviews WHERE masp = ? AND rating = ? ALLOW FILTERING';
     const options = {
       prepare: true,
       fetchSize: 5
@@ -69,7 +72,8 @@ class ReviewModel {
     }
   }
   static async getReviewsWithImages(productId, pageState) {
-    const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND has_images = true ALLOW FILTERING';
+    //const query = 'SELECT * FROM product_reviews_test WHERE masp = ? AND has_images = true ALLOW FILTERING';
+    const query = 'SELECT * FROM productReviews WHERE masp = ? AND has_images = true ALLOW FILTERING';
     const options = {
       prepare: true,
       fetchSize: 5
@@ -99,8 +103,9 @@ class ReviewModel {
     
     if (hasImages) {
       // Include images field when images exist product_reviews_test product_reviews_new
+      //product_reviews_test
       query = `
-        INSERT INTO product_reviews_test (
+        INSERT INTO productReviews (
           masp, mauser, username, rating, review_date,
           phanloai, chatluong, mota_dung, noidung,
           images, has_images, has_reply
@@ -124,7 +129,7 @@ class ReviewModel {
     } else {
       // Exclude images field when no images
       query = `
-        INSERT INTO product_reviews_test (
+        INSERT INTO productReviews (
           masp, mauser, username, rating, review_date,
           phanloai, chatluong, mota_dung, noidung,
           has_images, has_reply
@@ -161,7 +166,7 @@ class ReviewModel {
   try {
     // Update total_reviews
     await client.execute(
-      'UPDATE product_review_summary_test SET total_reviews = total_reviews + 1 WHERE masp = ?',
+      'UPDATE productReviewsSummary SET total_reviews = total_reviews + 1 WHERE masp = ?',
       [masp],
       { prepare: true }
     );
@@ -169,7 +174,7 @@ class ReviewModel {
     // Update rating_X (e.g., rating_5)
     const ratingColumn = `rating_${rating}`;
     await client.execute(
-      `UPDATE product_review_summary_test SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
+      `UPDATE productReviewsSummary SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
       [masp],
       { prepare: true }
     );
@@ -177,7 +182,7 @@ class ReviewModel {
     // Update has_images (only if applicable)
     if (hasImages) {
       await client.execute(
-        'UPDATE product_review_summary_test SET has_images = has_images + 1 WHERE masp = ?',
+        'UPDATE productReviewsSummary SET has_images = has_images + 1 WHERE masp = ?',
         [masp],
         { prepare: true }
       );
@@ -188,6 +193,44 @@ class ReviewModel {
   }
   }
 
+  static async addReplyToReview(productId, userId, replyContent) {
+    try {
+      // You need to decide how you identify a specific review to add a reply to.
+      // Based on your controller, you're passing productId and userId.
+      // This implies that a review is uniquely identified by these two,
+      // or perhaps there's a primary key/unique identifier for each review.
+      // For this example, let's assume review is identified by masp (productId) and mauser (userId).
+      // You might also have a review_id or review_date as part of the primary key.
+
+      // First, check if the review exists (optional but good practice)
+      const checkQuery = 'SELECT * FROM productReviews WHERE masp = ? AND mauser = ?';
+      const checkResult = await client.execute(checkQuery, [productId, userId], { prepare: true });
+
+      if (checkResult.rows.length === 0) {
+        return { success: false, message: 'Review not found' };
+      }
+
+      // Define the update query to add the reply
+      // Assuming you have a 'reply_content' column and 'has_reply' boolean column in your productReviews table
+      const updateQuery = `
+        UPDATE productReviews
+        SET reply_content = ?, has_reply = true, reply_date = toTimestamp(now())
+        WHERE masp = ? AND mauser = ?
+      `;
+      // Note: You might need to include other primary key components in the WHERE clause
+      // depending on your Cassandra table schema for productReviews.
+      // For example, if review_date is part of your primary key:
+      // WHERE masp = ? AND mauser = ? AND review_date = ?
+
+      const params = [replyContent, productId, userId];
+      await client.execute(updateQuery, params, { prepare: true });
+
+      return { success: true, message: 'Reply added successfully' };
+    } catch (error) {
+      console.error('Database error adding reply:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = ReviewModel;

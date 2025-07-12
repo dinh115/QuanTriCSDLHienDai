@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xem Đánh Giá Sản Phẩm</title>
     <link rel="stylesheet" href="/styles/reviews.css">
-    <link rel="shortcut icon" href="static/shopee.svg" type="image/x-icon">
-    <link rel="stylesheet" href="styles/normalize.min.css">
-    <link rel="stylesheet" href="styles/bootstrap.css">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/main.css">
-    <link rel="stylesheet" href="styles/grid.css">
-    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="shortcut icon" href="/static/shopee.svg" type="image/x-icon">
+    <link rel="stylesheet" href="/styles/normalize.min.css">
+    <link rel="stylesheet" href="/styles/bootstrap.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/base.css">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="/styles/grid.css">
+    <link rel="stylesheet" href="/styles/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap&subset=vietnamese" rel="stylesheet">
-    <script src="scripts/jquery.js"></script>
-    <script src="scripts/bootstrap.js"></script>
+    <script src="/scripts/jquery.js"></script>
+    <script src="/scripts/bootstrap.js"></script>
     <style>
         .loading-spinner {
             display: none;
@@ -57,32 +57,32 @@
             display: block;
         }
     </style>
-</head>
+    </head>
 
-<body>
-    <div class="container">
-        <%- include('boilerplates/reviews-header') %>
-        
-        <div class="reviews-container" id="reviews-container">
-            <% reviews.forEach(review => { %>
+    <body>
+        <div class="container">
+            <%- include('boilerplates/reviews-header') %>
+
+            <div class="reviews-container" id="reviews-container">
+                <% reviews.forEach(review => { %>
                 <%- include('boilerplates/reviews-item', { review: review }) %>
-            <% }) %>
-        </div>
-        
-        <!-- Loading spinner -->
-        <div class="loading-spinner" id="loading-spinner">
-            <div class="spinner"></div>
-            <p>Đang tải thêm đánh giá...</p>
-        </div>
-        
-        <!-- No more reviews message -->
-        <div class="no-more-reviews" id="no-more-reviews">
-            Không còn bình luận!
-        </div>
-    </div>
-    <%- include('boilerplates/footer') %>
+                <% }) %>
+            </div>
 
-    <script>
+            <!-- Loading spinner -->
+            <div class="loading-spinner" id="loading-spinner">
+                <div class="spinner"></div>
+                <p>Đang tải thêm đánh giá...</p>
+            </div>
+
+            <!-- No more reviews message -->
+            <div class="no-more-reviews" id="no-more-reviews">
+                Không còn bình luận!
+            </div>
+        </div>
+        <%- include('boilerplates/footer') %>
+
+        <script>
         let isLoading = false;
         let hasMore = <%= hasMore %>;
         let nextPage = '<%= nextPage %>';
@@ -271,6 +271,6 @@
             document.getElementById('no-more-reviews').classList.add('show');
         }
     </script>
-    
-</body>
+
+    </body>
 </html>

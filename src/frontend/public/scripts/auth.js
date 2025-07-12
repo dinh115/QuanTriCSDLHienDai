@@ -133,16 +133,14 @@ class AuthManager {
             });
 
             const data = await response.json();
-
+            
             if (response.ok) {
                 // Login successful
                 this.token = data.token;
                 this.user = data.user;
-
                 // Save to localStorage
                 localStorage.setItem('authToken', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
-
                 this.showSuccess('Đăng nhập thành công!');
 
                 // Close modal after short delay

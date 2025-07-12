@@ -72,9 +72,160 @@ await redisClient.connect();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Helper function to call product service
+//get health
+app.get('/health', (req, res) => {
+  res.status(200).send('Frontend is healthy');
+});
+
+
+// ✅ Updated home route (keep only this one)
+app.get('/', async (req, res) => {
+    const username = req.user?.username || ("User #" + Math.floor(Math.random() * 100 + 1));
+    const exampleProductId = "22417326-f9fd-4954-9ead-3ceafd52f3d6";
+
+    let productsToReview = [];
+    let products = [];
+    
+    try {
+        // Fetch products for home page
+        const productsData = await callProductService('/products?limit=20&status=active');
+        products = productsData.data || [];
+        
+        // Fetch review notifications
+        const purchasedProductIds = [
+            "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "10000000-0000-0000-0000-000000000000"
+        ];
+
+        const productDetailsPromises = purchasedProductIds.map(async (productid) => {
+            try {
+                const response = await fetch('http://review-service:3009/products/details', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productid })
+                });
+
+                if (!response.ok) {
+                    console.error(`API request failed for product ID: ${productid} with status: ${response.status}`);
+                    return null;
+                }
+                const productData = await response.json();
+                productData.productid = productid;
+                return productData;
+
+            } catch (fetchError) {
+                console.error(`Fetch error for product ID: ${productid}`, fetchError);
+                return null;
+            }
+        });
+
+        productsToReview = (await Promise.all(productDetailsPromises)).filter(p => p !== null);
+
+    } catch (error) {
+        console.error('❌ Error fetching data for home page:', error);
+        products = [];
+        productsToReview = [];
+    }
+
+    res.render('home.ejs', {
+        username,
+        user: req.user,
+        exampleProductId,
+        products,
+        totalProducts: products.length,
+        productsToReview
+    });
+});
+
+// ✅ Fixed addProduct route (ensure this comes BEFORE any catch-all routes)
+app.post('/addProduct', upload.array('images', 10), async (req, res) => {
+  // Force JSON response
+  res.setHeader('Content-Type', 'application/json');
+  
+  console.log('=== ADD PRODUCT ROUTE HIT ===');
+  console.log('User:', req.user);
+  console.log('Body:', req.body);
+  console.log('Files:', req.files?.map(f => f.filename));
+  
+  if (!req.user) {
+    console.log('No user found, returning 401');
+    return res.status(401).json({
+      success: false,
+      message: 'Bạn cần đăng nhập để thêm sản phẩm',
+      redirect: '/login'
+    });
+  }
+  
+  try {
+    // Validate required fields
+    if (!req.body.name || !req.body.price || !req.body.description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng điền đầy đủ tên sản phẩm, giá và mô tả'
+      });
+    }
+    
+    const productData = {
+      shopId: req.body.shopId,
+      name: req.body.name,
+      description: req.body.description,
+      price: parseFloat(req.body.price),
+      stock: parseInt(req.body.stock) || 0,
+      category: req.body.category || 'uncategorized',
+      subcategory: req.body.subcategory || '',
+      brand: req.body.brand || '',
+      tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
+      status: req.body.status || 'active'
+    };
+    // Handle uploaded images
+    if (req.files && req.files.length > 0) {
+      productData.images = req.files.map(file => `/images/${file.filename}`);
+      productData.image = productData.images[0];
+    }
+
+    // Handle specifications
+    if (req.body.specifications) {
+      try {
+        productData.specifications = JSON.parse(req.body.specifications);
+      } catch (parseError) {
+        console.error('Error parsing specifications:', parseError);
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu specifications không hợp lệ'
+        });
+      }
+    }
+
+    console.log('Calling product service with data:', productData);
+    const result = await callProductService('/products/add', 'POST', productData);
+    console.log('Product service result:', result);
+    
+    if (result && (result.success || result.data)) {
+      return res.status(200).json({
+        success: true,
+        message: 'Sản phẩm đã được tạo thành công!',
+        data: result.data
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: result?.message || 'Không thể tạo sản phẩm'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error in addProduct route:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi server: ' + error.message
+    });
+  }
+});
+
+// ✅ Improved callProductService function
 async function callProductService(endpoint, method = 'GET', data = null) {
   try {
+    console.log("lmao");
     const config = {
       method,
       headers: {
@@ -86,52 +237,50 @@ async function callProductService(endpoint, method = 'GET', data = null) {
       config.body = JSON.stringify(data);
     }
     
-    const response = await fetch(`http://localhost:3001${endpoint}`, config);
+    console.log(`Calling product service: ${method} http://product-service:3001${endpoint}`);
+    console.log('Request data:', data);
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const response = await fetch(`http://product-service:3001${endpoint}`, config);
+    
+    let result;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const text = await response.text();
+      console.error('Product service returned non-JSON:', text);
+      throw new Error(`Product service returned non-JSON response: ${text.substring(0, 200)}...`);
     }
     
-    return await response.json();
+    console.log('Product service response:', result);
+    
+    if (!response.ok) {
+      return {
+        success: false,
+        message: result.message || `HTTP error! status: ${response.status}`
+      };
+    }
+    
+    return {
+      success: true,
+      data: result
+    };
   } catch (error) {
     console.error(`Error calling product service: ${error.message}`);
-    throw error;
+    return {
+      success: false,
+      message: error.message
+    };
   }
 }
-
-// Home page - Load products from service
-app.get('/', async (req, res) => {
-  const username = req.user?.username || ("User #" + Math.floor(Math.random() * 100 + 1));
-  
-  try {
-    // Lấy danh sách sản phẩm từ product service
-    const products = await callProductService('/api/products?limit=20&status=active');
-    
-    res.render('home.ejs', { 
-      username, 
-      user: req.user, 
-      products: products.data || [],
-      totalProducts: products.total || 0
-    });
-  } catch (error) {
-    console.error('Error loading products:', error);
-    res.render('home.ejs', { 
-      username, 
-      user: req.user, 
-      products: [],
-      totalProducts: 0,
-      error: 'Không thể tải sản phẩm'
-    });
-  }
-});
-
 // --- PRODUCT ROUTES ---
 // API to get products for frontend
-app.get('/api/products', async (req, res) => {
+app.get('/products', async (req, res) => {
   try {
     const { category, search, page = 1, limit = 20, sort = 'createdAt', shopId } = req.query;
     
-    let endpoint = '/api/products?';
+    let endpoint = '/products?';
     const params = new URLSearchParams();
     
     if (category) params.append('category', category);
@@ -155,108 +304,10 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// Get single product
-app.get('/api/products/:id', async (req, res) => {
-  try {
-    const product = await callProductService(`/api/products/${req.params.id}`);
-    res.json(product);
-  } catch (error) {
-    if (error.message.includes('404')) {
-      res.status(404).json({ 
-        success: false, 
-        message: 'Không tìm thấy sản phẩm' 
-      });
-    } else {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Lỗi khi tải sản phẩm',
-        error: error.message 
-      });
-    }
-  }
-});
-
-// Get categories
-app.get('/api/categories', async (req, res) => {
-  try {
-    const categories = await callProductService('/api/categories');
-    res.json(categories);
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Lỗi khi tải danh mục',
-      error: error.message 
-    });
-  }
-});
-
-// Product detail page
-app.get('/product/:id', async (req, res) => {
-  try {
-    const product = await callProductService(`/api/products/${req.params.id}`);
-    res.render('product-detail', { 
-      product: product.data || product,
-      title: product.data?.name || product.name,
-      user: req.user
-    });
-  } catch (error) {
-    console.error('Error loading product detail:', error);
-    res.status(404).render('404', { 
-      title: 'Không tìm thấy sản phẩm',
-      message: 'Sản phẩm bạn tìm kiếm không tồn tại',
-      user: req.user
-    });
-  }
-});
-
-// Search page
-app.get('/search', async (req, res) => {
-  try {
-    const { q: query, category, page = 1 } = req.query;
-    
-    let endpoint = '/api/products?';
-    const params = new URLSearchParams();
-    
-    if (query) params.append('search', query);
-    if (category) params.append('category', category);
-    params.append('page', page);
-    params.append('limit', 20);
-    params.append('status', 'active');
-    
-    endpoint += params.toString();
-    
-    const results = await callProductService(endpoint);
-    
-    res.render('search', { 
-      results: results.data || [],
-      query,
-      category,
-      totalResults: results.total || 0,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil((results.total || 0) / 20),
-      title: `Kết quả tìm kiếm: ${query || 'Tất cả sản phẩm'}`,
-      user: req.user
-    });
-  } catch (error) {
-    console.error('Error in search:', error);
-    res.render('search', { 
-      results: [],
-      query: req.query.q || '',
-      category: req.query.category || '',
-      totalResults: 0,
-      currentPage: 1,
-      totalPages: 0,
-      title: 'Kết quả tìm kiếm',
-      user: req.user,
-      error: 'Không thể tìm kiếm sản phẩm'
-    });
-  }
-});
-
 // Create new product page
 app.get('/products/new', (req, res) => {
   if (!req.user) return res.redirect('/login');
-  res.render('product_form', { 
+  res.render('product_form.ejs', { 
     title: 'Thêm sản phẩm mới',
     user: req.user,
     product: null,
@@ -264,143 +315,19 @@ app.get('/products/new', (req, res) => {
   });
 });
 
-// Create new product
-app.post('/products', upload.array('images', 10), async (req, res) => {
-  if (!req.user) return res.redirect('/login');
-  
-  try {
-    const productData = {
-      shopId: req.user.shopId || req.user.id,
-      name: req.body.name,
-      description: req.body.description,
-      price: parseFloat(req.body.price),
-      stock: parseInt(req.body.stock) || 0,
-      category: req.body.category,
-      subcategory: req.body.subcategory,
-      brand: req.body.brand,
-      tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
-      status: req.body.status || 'draft'
-    };
-
-    // Handle uploaded images
-    if (req.files && req.files.length > 0) {
-      productData.images = req.files.map(file => `/images/${file.filename}`);
-      productData.image = productData.images[0]; // Set first image as main image
-    }
-
-    // Handle specifications
-    if (req.body.specifications) {
-      productData.specifications = JSON.parse(req.body.specifications);
-    }
-
-    const result = await callProductService('/api/products', 'POST', productData);
-    
-    res.redirect(`/product/${result.data.id}`);
-  } catch (error) {
-    console.error('Error creating product:', error);
-    res.render('product_form', { 
-      title: 'Thêm sản phẩm mới',
-      user: req.user,
-      product: req.body,
-      isEdit: false,
-      error: 'Không thể tạo sản phẩm: ' + error.message
-    });
-  }
-});
-
-// Edit product page
-app.get('/products/:id/edit', async (req, res) => {
-  if (!req.user) return res.redirect('/login');
-  
-  try {
-    const product = await callProductService(`/api/products/${req.params.id}`);
-    
-    // Check if user owns this product
-    if (product.data.shopId !== req.user.shopId && product.data.shopId !== req.user.id) {
-      return res.status(403).render('403', { 
-        title: 'Không có quyền truy cập',
-        message: 'Bạn không có quyền chỉnh sửa sản phẩm này',
-        user: req.user
-      });
-    }
-    
-    res.render('product_form', { 
-      title: 'Chỉnh sửa sản phẩm',
-      user: req.user,
-      product: product.data,
-      isEdit: true
-    });
-  } catch (error) {
-    console.error('Error loading product for edit:', error);
-    res.status(404).render('404', { 
-      title: 'Không tìm thấy sản phẩm',
-      message: 'Sản phẩm bạn muốn chỉnh sửa không tồn tại',
-      user: req.user
-    });
-  }
-});
-
-// Update product
-app.put('/products/:id', upload.array('images', 10), async (req, res) => {
-  if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
-  
-  try {
-    const productData = {
-      name: req.body.name,
-      description: req.body.description,
-      price: parseFloat(req.body.price),
-      stock: parseInt(req.body.stock) || 0,
-      category: req.body.category,
-      subcategory: req.body.subcategory,
-      brand: req.body.brand,
-      tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
-      status: req.body.status || 'draft'
-    };
-
-    // Handle uploaded images
-    if (req.files && req.files.length > 0) {
-      productData.images = req.files.map(file => `/images/${file.filename}`);
-      productData.image = productData.images[0];
-    }
-
-    // Handle specifications
-    if (req.body.specifications) {
-      productData.specifications = JSON.parse(req.body.specifications);
-    }
-
-    const result = await callProductService(`/api/products/${req.params.id}`, 'PUT', productData);
-    
-    res.json({ success: true, data: result.data });
-  } catch (error) {
-    console.error('Error updating product:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Không thể cập nhật sản phẩm: ' + error.message
-    });
-  }
-});
-
-// Delete product
-app.delete('/products/:id', async (req, res) => {
-  if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
-  
-  try {
-    await callProductService(`/api/products/${req.params.id}`, 'DELETE');
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting product:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Không thể xóa sản phẩm: ' + error.message
-    });
-  }
-});
+// Home page
+// app.get('/', (req, res) => {
+//   const username = req.user?.username || ("User #" + Math.floor(Math.random() * 100 + 1));
+//   const exampleProductId = "22417326-f9fd-4954-9ead-3ceafd52f3d6";
+//   res.render('home.ejs', { username, user: req.user, exampleProductId });
+// });
 
 // --- CART ROUTES ---
 app.get('/cart', async (req, res) => {
   const cartId = req.cookies.cartId;
   try {
-    const response = await fetch(`http://cart_service:3001/carts/${cartId}`);
+    const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
+    console.log(response);
     const cart = await response.json();
     const cartItems = cart.items || [];
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity || 0), 0);
@@ -426,40 +353,29 @@ app.get('/cart', async (req, res) => {
 app.post('/cart/add', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { productId, quantity, shopId, name, price } = req.body;
-  
-  try {
-    const response = await fetch(`http://cart_service:3001/carts/${cartId}/items`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, quantity, shopId, name, price })
-    });
-    const result = await response.json();
-    
-    if (!result || !result.cart || !Array.isArray(result.cart.items)) {
-      return res.status(400).json({ success: false, message: 'Không thể thêm vào giỏ hàng' });
-    }
-    
-    const newItemId = result.cart.items.at(-1)?.id;
-    res.redirect(`/cart?highlight=${newItemId}`);
-  } catch (error) {
-    console.error('Error adding to cart:', error);
-    res.status(500).json({ success: false, message: 'Lỗi khi thêm vào giỏ hàng' });
-  }
+  const response = await fetch(`http://cart-service:3004/carts/${cartId}/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productId, quantity, shopId, name, price })
+  });
+  const result = await response.json();
+  if (!result || !result.cart || !Array.isArray(result.cart.items)) return;
+  const newItemId = result.cart.items.at(-1)?.id;
+  res.redirect(`/cart?highlight=${newItemId}`);
 });
 
 app.post('/cart/update', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId, quantity } = req.body;
   try {
-    const response = await fetch(`http://cart_service:3001/carts/${cartId}`);
+    const response = await fetch(`http://cart-service:3004/carts/${cartId}`);
     const cart = await response.json();
     const item = cart.items.find(i => i.id === itemId);
     if (!item) return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
     
     item.quantity = parseInt(quantity);
     item.updatedAt = new Date().toISOString();
-    
-    const updateRes = await fetch(`http://cart_service:3001/carts/${cartId}`, {
+    const updateRes = await fetch(`http://cart-service:3004/carts/${cartId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(cart)
@@ -478,9 +394,7 @@ app.post('/cart/remove', async (req, res) => {
   const cartId = req.cookies.cartId;
   const { itemId } = req.body;
   try {
-    const deleteRes = await fetch(`http://cart_service:3001/carts/${cartId}/items/${itemId}`, { 
-      method: 'DELETE' 
-    });
+    const deleteRes = await fetch(`http://cart-service:3004/carts/${cartId}/items/${itemId}`, { method: 'DELETE' });
     if (!deleteRes.ok) throw new Error('Xoá không thành công');
     res.json({ success: true });
   } catch (err) {
@@ -498,7 +412,7 @@ app.get('/login', (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const response = await fetch('http://localhost:3001/api/auth/login', {
+    const response = await fetch('http://user-service:3002/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
@@ -528,72 +442,350 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-// --- REVIEW ROUTES ---
-app.get('/review', (req, res) => {
-  res.render('review', { 
-    title: 'Đánh giá sản phẩm',
-    user: req.user
-  });
+// --- REVIEW ROUTES (like before) ---
+// (Tạm lược bớt ở đây vì phần còn lại giống, bạn có thể nối tiếp phần reviews nếu cần)
+// Reviews route - initial load
+app.get('/reviews', async (req, res) => {
+    const apiUrl = 'http://review-service:3009/product/10000000-0000-0000-0000-000000000000/reviews';
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        res.render('review.ejs', { 
+            reviews, 
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).send("Lỗi khi tải đánh giá");
+    }
 });
 
-app.get('/review-form', (req, res) => {
-  const { productId } = req.query;
-  res.render('review-form', { 
-    title: 'Viết đánh giá',
-    user: req.user,
-    productId
-  });
+// API endpoint for pagination with filters
+app.get('/reviews/:productId', async (req, res) => {
+    const { productId } = req.params; // Get productId from URL
+    const apiUrl = `http://review-service:3009/product/${productId}/reviews`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format (this logic remains the same)
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        // Pass productId to the template
+        res.render('review.ejs', {
+            productId, // Pass the ID to the view
+            reviews,
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).send("Lỗi khi tải đánh giá");
+    }
 });
 
-app.post('/review', async (req, res) => {
-  if (!req.user) return res.redirect('/login');
-  
-  try {
-    const reviewData = {
-      userId: req.user.id,
-      productId: req.body.productId,
-      rating: parseInt(req.body.rating),
-      comment: req.body.comment,
-      images: req.body.images || []
-    };
-    
-    // Call review service or save to database
-    // For now, just redirect back
-    res.redirect(`/product/${req.body.productId}`);
-  } catch (error) {
-    console.error('Error submitting review:', error);
-    res.render('review-form', { 
-      title: 'Viết đánh giá',
-      user: req.user,
-      productId: req.body.productId,
-      error: 'Không thể gửi đánh giá'
+// API endpoint for pagination with filters (MODIFIED)
+app.get('/api/reviews/:productId', async (req, res) => {
+    const { productId } = req.params; // Get productId from URL
+    const pageState = req.query.pageState;
+    const filter = req.query.filter;
+
+    let apiUrl = `http://review-service:3009/product/${productId}/reviews`;
+
+    // Apply filter to URL (this logic remains the same)
+    if (filter && filter !== 'all') {
+        if (filter.startsWith('rating-')) {
+            const rating = filter.split('-')[1];
+            apiUrl += `/rating/${rating}`;
+        } else if (filter === 'images') {
+            apiUrl += '/images';
+        }
+    }
+
+    // Add pagination if provided
+    if (pageState) {
+        apiUrl += `?pageState=${pageState}`;
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields to frontend format (this logic remains the same)
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            response: r.has_reply
+                ? {
+                      title: "Phản Hồi Của Người Bán",
+                      content: r.reply_content,
+                  }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        res.json({
+            reviews,
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage,
+            filter: filter || 'all'
+        });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).json({ error: "Lỗi khi tải đánh giá" });
+    }
+});
+
+// Review form route
+// app.get('/review-form', (req, res) => {
+//     const username = "User #" + Math.floor(Math.random() * 100) + 1;
+//     res.render('review-form.ejs', { username });
+// });
+
+// MODIFIED: Review form route is now dynamic to get the product ID
+// app.get('/product/:productId/review-form', (req, res) => {
+//     const { productId } = req.params;
+//     const username = "User #" + Math.floor(Math.random() * 100) + 1;
+//     // Pass the productId to the form template
+//     res.render('review-form.ejs', { username, productId });
+// });
+
+app.get('/product/:productId/review-form', async (req, res) => {
+    const { productId } = req.params;
+    const username = req.user?.username || ("User #" + Math.floor(Math.random() * 100 + 1)); // Use req.user if available
+
+    let productDetails = null;
+
+    try {
+        // Fetch product details from your review-service
+        const response = await fetch('http://review-service:3009/products/details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productid: productId }) // Ensure this matches your API's expected payload
+        });
+
+        if (!response.ok) {
+            console.error(`API request failed for product ID: ${productId} with status: ${response.status}`);
+            // Log the error but don't prevent the page from loading
+            // You might want to display a message to the user later in the EJS if productDetails is null
+        } else {
+            productDetails = await response.json();
+        }
+    } catch (error) {
+        console.error('❌ Error fetching product details for review form:', error);
+        // If the review service is down or there's a network error, productDetails will remain null
+    }
+
+    // Pass the productId, username, and productDetails to the form template
+    res.render('review-form.ejs', {
+        username,
+        productId,
+        product: productDetails, // Pass the fetched product details here
+        user: req.user // Ensure you're passing req.user if your header-review-form.ejs uses it
     });
-  }
 });
 
-// --- ERROR HANDLING ---
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render('error', { 
-    title: 'Lỗi hệ thống',
-    message: 'Đã xảy ra lỗi, vui lòng thử lại sau',
-    user: req.user,
-    error: process.env.NODE_ENV === 'development' ? err : {}
-  });
+
+// NEW: Route to handle the review form submission with file uploads
+app.post('/product/:productId/reviews', upload.array('images', 5), async (req, res) => {
+    const { productId } = req.params;
+    
+    // Extract text data from the form body
+    const { rating, phanloai, chatluong, mota_dung, noidung } = req.body;
+    
+    // Get the relative paths of uploaded images provided by multer
+    const imagePaths = req.files ? req.files.map(file => `/images/${file.filename}`) : [];
+
+    // Construct the payload for your backend API
+    const payload = {
+        mauser: "dda14db3-f64e-4c66-bc60-e02b061761b2", // session dummy
+        username: "username", // session dummy
+        rating: parseInt(rating, 10), // Ensure rating is a number
+        phanloai,
+        chatluong,
+        mota_dung,
+        noidung,
+        images: imagePaths
+    };
+
+    try {
+        // Send the composed data to your backend API
+        const apiResponse = await fetch(`http://review-service:3009/product/${productId}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            throw new Error(`Backend API Error: ${apiResponse.status} - ${errorText}`);
+        }
+        
+        // After successful submission, redirect the user to see their new review
+        console.log('Review submitted successfully!');
+        res.redirect(`/reviews/${productId}`);
+
+    } catch (error) {
+        console.error('Error submitting review to backend:', error);
+        res.status(500).send("Lỗi khi gửi đánh giá.");
+    }
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).render('404', { 
-    title: 'Không tìm thấy trang',
-    message: 'Trang bạn tìm kiếm không tồn tại',
-    user: req.user
-  });
+// ⭐ NEW: API endpoint to handle review replies
+app.post('/product/:productId/reviews/:reviewId/reply', async (req, res) => {
+    const { productId, reviewId } = req.params;
+    const { reply_content } = req.body;
+
+    try {
+        const apiResponse = await fetch(`http://review-service:3009/product/${productId}/reviews/${reviewId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply_content })
+        });
+
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            console.error(`Backend API Error: ${apiResponse.status} - ${errorText}`);
+            return res.status(apiResponse.status).json({ success: false, message: 'Failed to submit reply to the backend.' });
+        }
+
+        const responseData = await apiResponse.json();
+        console.log('Reply submitted successfully!');
+        res.status(200).json({ success: true, message: 'Reply submitted successfully!', data: responseData });
+
+    } catch (error) {
+        console.error('Error submitting reply:', error);
+        res.status(500).json({ success: false, message: 'An internal server error occurred.' });
+    }
 });
 
-// Start server
+// --- NEW ROUTES FOR SHOP OWNER REPLIES ---
+
+// NEW: Route to display reviews for shop owner
+app.get('/reviews-shop-owner/:productId', async (req, res) => {
+    const { productId } = req.params;
+    const apiUrl = `http://review-service:3009/product/${productId}/reviews`;
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        // Map API fields, including mauser which is needed for the reply API
+        const reviews = data.reviews.map((r, idx) => ({
+            id: idx + 1,
+            username: r.username,
+            rating: r.rating,
+            date: new Date(r.review_date).toLocaleString('vi-VN'),
+            title: null,
+            content: r.noidung,
+            mauser: r.mauser, // Include mauser for the reply button
+            response: r.has_reply
+                ? {
+                    title: "Phản Hồi Của Người Bán",
+                    content: r.reply_content,
+                }
+                : null,
+            images: r.images || [],
+            chatluong: r.chatluong,
+            mota_dung: r.mota_dung,
+            phanloai: r.phanloai
+        }));
+
+        res.render('reviews-shop-owner.ejs', {
+            productId,
+            reviews,
+            nextPage: data.nextPage,
+            hasMore: !!data.nextPage
+        });
+    } catch (error) {
+        console.error('Error fetching reviews for shop owner:', error);
+        res.status(500).send("Lỗi khi tải đánh giá");
+    }
+});
+
+// NEW: API endpoint to handle reply submission
+app.post('/product/:productId/reviews/:mauser/reply', async (req, res) => {
+    const { productId, mauser } = req.params;
+    const { reply_content } = req.body;
+
+    // Validate input
+    if (!reply_content) {
+        return res.status(400).json({ error: 'Nội dung phản hồi không được để trống.' });
+    }
+
+    try {
+        const apiResponse = await fetch(`http://review-service:3009/product/${productId}/reviews/${mauser}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply_content })
+        });
+
+        if (!apiResponse.ok) {
+            const errorText = await apiResponse.text();
+            console.error(`Backend API Error: ${apiResponse.status} - ${errorText}`);
+            return res.status(apiResponse.status).json({ error: `Lỗi khi gửi phản hồi: ${apiResponse.statusText}` });
+        }
+
+        const data = await apiResponse.json();
+        res.json({
+            success: true,
+            message: 'Phản hồi đã được gửi thành công.',
+            replyData: data // Or whatever the backend returns
+        });
+    } catch (error) {
+        console.error('Error submitting reply to backend:', error);
+        res.status(500).json({ error: "Lỗi server khi gửi phản hồi." });
+    }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Frontend running at http://localhost:${PORT}`);
 });
-
-export default app;

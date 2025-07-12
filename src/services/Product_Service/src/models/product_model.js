@@ -30,8 +30,16 @@ export async function getAllProducts(filters = {}, pagination = {}, sorting = {}
         }
 
         // Sorting
-        const sortField = sorting.sortBy || 'createdAt';
-        const sortDirection = sorting.sortOrder === 'asc' ? 1 : -1;
+        let sortField = sorting.sortBy || 'createdAt';
+        let sortDirection = -1; // default: desc
+
+        if (sortField.startsWith('-')) {
+            sortField = sortField.substring(1);
+            sortDirection = -1;
+        } else {
+            sortDirection = 1;
+        }
+
         const sortOption = { [sortField]: sortDirection };
 
         // Pagination
@@ -79,8 +87,8 @@ export async function updateProduct(id, data) {
     try {
         data.updatedAt = new Date();
         return await Product.findOneAndUpdate(
-            { id }, 
-            data, 
+            { id },
+            data,
             { new: true, runValidators: true }
         );
     } catch (error) {
@@ -100,8 +108,8 @@ export async function updateProductStock(id, newStock) {
     try {
         const product = await Product.findOneAndUpdate(
             { id },
-            { 
-                stock: newStock, 
+            {
+                stock: newStock,
                 status: newStock > 0 ? 'active' : 'out_of_stock',
                 updatedAt: new Date()
             },
@@ -116,15 +124,15 @@ export async function updateProductStock(id, newStock) {
 export async function getProductsByShop(shopId, filters = {}) {
     try {
         const query = { shopId };
-        
+
         if (filters.status) {
             query.status = filters.status;
         }
-        
+
         if (filters.category) {
             query.category = filters.category;
         }
-        
+
         return await Product.find(query).sort({ createdAt: -1 });
     } catch (error) {
         throw new Error(`Error fetching shop products: ${error.message}`);
@@ -133,20 +141,29 @@ export async function getProductsByShop(shopId, filters = {}) {
 
 export async function validateProducts(productIds) {
     try {
-        const products = await Product.find({ 
+        const products = await Product.find({
             id: { $in: productIds },
             status: 'active',
             stock: { $gt: 0 }
         });
-        
+
         const validIds = products.map(p => p.id);
         const invalidIds = productIds.filter(id => !validIds.includes(id));
-        
+
         return {
             valid: products,
             invalid: invalidIds
         };
     } catch (error) {
         throw new Error(`Error validating products: ${error.message}`);
+    }
+}
+
+// Lấy tất cả danh mục duy nhất
+export async function getAllCategories() {
+    try {
+        return await Product.distinct('category', { status: 'active' });
+    } catch (error) {
+        throw new Error(`Error fetching categories: ${error.message}`);
     }
 }

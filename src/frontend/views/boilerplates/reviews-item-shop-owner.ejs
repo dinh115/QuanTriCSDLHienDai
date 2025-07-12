@@ -1,0 +1,66 @@
+<div class="review-item" data-mauser="<%= review.mauser %>">
+    <div class="review-header">
+        <div class="user-avatar">
+            <img src="/images/default-avatar.png" alt="Avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="avatar-placeholder">
+                <%= review.username.charAt(0).toUpperCase() %>
+            </div>
+        </div>
+        
+        <div class="review-info">
+            <div class="username"><%= review.username %></div>
+            <div class="review-meta">
+                <div class="stars">
+                    <% for(let i = 1; i <= 5; i++) { %>
+                        <span class="star <%= i <= review.rating ? 'filled' : '' %>">★</span>
+                    <% } %>
+                </div>
+                <div class="review-date"><%= review.date %></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="review-content">
+        <div class="review-title">
+            <div><strong>Chất lượng sản phẩm:</strong> <%= review.chatluong %></div>
+            <div><strong>Chất lượng đúng với mô tả:</strong> <%= review.mota_dung %></div>
+            <div><strong>Phân loại sản phẩm:</strong> <%= review.phanloai %></div>
+        </div>
+        <div class="review-text"><%= review.content %></div>
+        
+        <% if(review.images && review.images.length > 0) { %>
+            <div class="review-images">
+                <% review.images.forEach((image, index) => { %>
+                    <div class="image-container">
+                        <img src="<%= image %>" alt="Review image <%= index + 1 %>"
+                            onload="this.nextElementSibling.style.display='none';" 
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder">
+                            <% if(index === 0) { %>
+                                📷
+                            <% } else { %>
+                                🖼️
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+        
+        <% if(review.response) { %>
+            <div class="seller-response">
+                <div class="response-header"><%= review.response.title %></div>
+                <div class="response-content"><%= review.response.content %></div>
+            </div>
+        <% } else { %>
+            <div class="reply-button-container">
+                <button class="btn btn-outline-primary reply-to-review-btn" 
+                    data-mauser="<%= review.mauser %>" 
+                    data-username="<%= review.username %>" 
+                    data-productid="<%= productId %>">
+                    <i class="fa-solid fa-reply"></i> Phản hồi đánh giá của khách hàng
+                </button>
+            </div>
+        <% } %>
+    </div>
+</div>

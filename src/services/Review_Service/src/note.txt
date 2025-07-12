@@ -2,27 +2,28 @@ cd src/services/Review_Service/src
 npm start
 GET http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews
 
-POST http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews
+POST http://localhost:3009/product/10000000-0000-0000-0000-000000000000/reviews
+Case: don't have image
+{
+  "mauser": "12111111-1111-1111-1111-111111111111",
+  "username": "iadn123",
+  "rating": 5,
+  "phanloai": "Sữa Sô cô la",
+  "chatluong": "Tuyệt vời",
+  "mota_dung": "Đúng",
+  "noidung": "Giao hàng đúng hẹn"
+}
+POST http://localhost:3009/product/10000000-0000-0000-0000-000000000000/reviews
 Case: have image
 {
-  "mauser": "dda14db3-f64e-4c66-bc60-e02b061761b2",
-  "username": "username",
+  "mauser": "12111111-1111-1111-1111-111111111111",
+  "username": "iadn123",
   "rating": 5,
-  "phanloai": "category",
-  "chatluong": "quality",
-  "mota_dung": "description",
-  "noidung": "review content",
+  "phanloai": "Sữa Sô cô la",
+  "chatluong": "Tuyệt vời",
+  "mota_dung": "Đúng",
+  "noidung": "Giao hàng đúng hẹn",
   "images": ["image_url1", "image_url2"]
-}
-POST http://localhost:3003/product/86890117-a1cd-48cf-97ae-1e7cc9c1f529/reviews
-Case: does not have image
-{
-  "mauser": "dda14db3-f64e-4c66-bc60-e02b061761b2",
-  "username": "username",
-  "rating": 4,
-  "chatluong": "quality",
-  "mota_dung": "description",
-  "noidung": "review content"
 }
 
 POST http://localhost:3003/product/00000000-0000-0000-0000-000000000000/reviews/00000000-0000-0000-0000-000000000000/reply
@@ -31,7 +32,7 @@ to meet the low latency, Cassandra will add this row instead of update)
 {
   "reply_content": "Cảm ơn bạn đã đánh giá sản phẩm, Shop rất vui khi thấy bạn thích sản phẩm này."
 }
-POST http://localhost:3003/product/22417326-f9fd-4954-9ead-3ceafd52f3d6/reviews/dda14db3-f64e-4c66-bc60-e02b061761b2/reply
+POST http://localhost:3003/product/10000000-0000-0000-0000-000000000000/reviews/12111111-1111-1111-1111-111111111111/reply
 {
   "reply_content": "Thank you ^^."
 }

@@ -8,5 +8,5 @@ RUN npm install
 
 EXPOSE 3001
 
- CMD ["sleep","infinity"]
-# CMD ["npm", "run", "dev"]
+# CMD ["sleep","infinity"]
+CMD ["npm", "run", "dev"]

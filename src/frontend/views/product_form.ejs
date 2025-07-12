@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm sản phẩm mới - Shopee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .tab-active {
+            border-bottom: 2px solid #f97316;
+            color: #ea580c;
+        }
+        .tab-inactive {
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+        }
+        .tab-inactive:hover {
+            color: #374151;
+            border-bottom-color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-gray-600 mb-4">
+                <span class="text-orange-500">S</span>
+                <span>Trang chủ</span>
+                <span>›</span>
+                <span>Sản phẩm</span>
+                <span>›</span>
+                <span>Thêm 1 sản phẩm mới</span>
+            </div>
+            
+            <div class="flex gap-6">
+                <!-- Sidebar -->
+                <div class="w-64">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <h3 class="font-medium text-gray-700 mb-2">Gợi ý điền Thông tin</h3>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>• Thêm ít nhất 3 hình ảnh</li>
+                            <li>• Thêm video sản phẩm</li>
+                            <li>• Tên sản phẩm có ít nhất 25~100 kí tự</li>
+                            <li>• Thêm ít nhất 100 kí tự hoặc 1 hình ảnh trong mô tả sản phẩm</li>
+                            <li>• Thêm thương hiệu</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="flex-1">
+                    <form id="productForm" enctype="multipart/form-data">
+                        <div class="bg-white rounded-lg shadow-sm">
+                            <!-- Tabs -->
+                            <div class="border-b border-gray-200">
+                                <nav class="flex space-x-8 px-6">
+                                    <button type="button" onclick="switchTab('basic')" class="tab-button py-4 px-1 font-medium text-sm tab-active" data-tab="basic">
+                                        Thông tin cơ bản
+                                    </button>
+                                    <button type="button" onclick="switchTab('details')" class="tab-button py-4 px-1 font-medium text-sm tab-inactive" data-tab="details">
+                                        Thông tin chi tiết
+                                    </button>
+                                    <button type="button" onclick="switchTab('sales')" class="tab-button py-4 px-1 font-medium text-sm tab-inactive" data-tab="sales">
+                                        Thông tin bán hàng
+                                    </button>
+                                    <button type="button" onclick="switchTab('shipping')" class="tab-button py-4 px-1 font-medium text-sm tab-inactive" data-tab="shipping">
+                                        Vận chuyển
+                                    </button>
+                                    <button type="button" onclick="switchTab('other')" class="tab-button py-4 px-1 font-medium text-sm tab-inactive" data-tab="other">
+                                        Thông tin khác
+                                    </button>
+                                </nav>
+                            </div>
+
+                            <!-- Tab Content -->
+                            <div class="p-6">
+                                <!-- Basic Info Tab -->
+                                <div id="basic-tab" class="tab-content">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                * Hình ảnh sản phẩm
+                                            </label>
+                                            <div class="flex gap-4 mb-4">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="radio" id="ratio-1-1" name="imageRatio" class="text-orange-500" checked>
+                                                    <label for="ratio-1-1" class="text-sm">Hình ảnh tỷ lệ 1:1</label>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="radio" id="ratio-3-4" name="imageRatio" class="text-orange-500">
+                                                    <label for="ratio-3-4" class="text-sm">Hình ảnh tỷ lệ 3:4</label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-5 gap-4 mb-4" id="imageGrid">
+                                                <label class="border-2 border-dashed border-gray-300 rounded-lg aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-orange-500">
+                                                    <i class="fas fa-upload text-2xl text-gray-400 mb-2"></i>
+                                                    <span class="text-xs text-gray-500">Thêm hình ảnh</span>
+                                                    <span class="text-xs text-gray-400" id="imageCount">(0/9)</span>
+                                                    <input type="file" name="images" multiple accept="image/*" onchange="handleImageUpload(this)" class="hidden">
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Ảnh bìa</label>
+                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" id="coverImageContainer">
+                                                <div class="text-gray-400">
+                                                    <i class="fas fa-upload text-2xl mb-2"></i>
+                                                    <p class="text-sm">Tải lên hình ảnh 1:1</p>
+                                                    <p class="text-xs">Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý hôm nay,... Việc sử dụng ảnh bìa đẹp sẽ thu hút thêm lượt truy cập vào sản phẩm của bạn</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Details Tab -->
+                                <div id="details-tab" class="tab-content hidden">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Tên sản phẩm</label>
+                                            <input type="text" name="name" id="productName" placeholder="Tên sản phẩm + Thương hiệu + Model + Thông số kỹ thuật" 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" 
+                                                   maxlength="200" onkeyup="updateCharCount(this, 'nameCount', 200)">
+                                            <div class="text-right text-sm text-gray-500 mt-1" id="nameCount">0/200</div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Ngành hàng</label>
+                                            <select name="category" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="">Chọn ngành hàng</option>
+                                                <option value="fashion">Thời trang</option>
+                                                <option value="electronics">Điện tử</option>
+                                                <option value="home">Nhà cửa & Đời sống</option>
+                                                <option value="beauty">Làm đẹp</option>
+                                                <option value="sports">Thể thao</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Danh mục phụ</label>
+                                            <input type="text" name="subcategory" placeholder="Nhập danh mục phụ..." 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Mô tả sản phẩm</label>
+                                            <textarea name="description" rows="6" placeholder="Nhập mô tả sản phẩm..." 
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                                      maxlength="2000" onkeyup="updateCharCount(this, 'descCount', 2000)"></textarea>
+                                            <div class="text-right text-sm text-gray-500 mt-1" id="descCount">0/2000</div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+                                            <input type="text" name="tags" placeholder="Nhập tags, phân cách bằng dấu phẩy..." 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+
+                                        <!-- Specifications -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Thông số kỹ thuật</label>
+                                            <div class="bg-orange-50 p-4 rounded-lg mb-4">
+                                                <p class="text-sm text-gray-700">
+                                                    Điền thông tin thuộc tính để tăng mức độ hiển thị cho sản phẩm
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="space-y-4" id="specifications-container">
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Thương hiệu</label>
+                                                        <input type="text" name="brand" placeholder="Nhập thương hiệu..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Xuất xứ</label>
+                                                        <input type="text" name="specs[origin]" placeholder="Nhập xuất xứ..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Chất liệu</label>
+                                                        <input type="text" name="specs[material]" placeholder="Nhập chất liệu..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Màu sắc</label>
+                                                        <input type="text" name="specs[color]" placeholder="Nhập màu sắc..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Kích thước</label>
+                                                        <input type="text" name="specs[size]" placeholder="Nhập kích thước..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">Cân nặng</label>
+                                                        <input type="text" name="specs[weight]" placeholder="Nhập cân nặng..." 
+                                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                    </div>
+                                                </div>
+                                                <button type="button" onclick="addSpecification()" 
+                                                        class="text-orange-500 hover:text-orange-600 text-sm font-medium">
+                                                    + Thêm thông số kỹ thuật
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sales Tab -->
+                                <div id="sales-tab" class="tab-content hidden">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Giá</label>
+                                            <div class="flex items-center">
+                                                <span class="text-gray-500 mr-2">₫</span>
+                                                <input type="number" name="price" required min="0" step="1000" placeholder="Nhập giá..." 
+                                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">* Kho hàng</label>
+                                            <input type="number" name="stock" required min="0" value="0" 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                                            <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <option value="draft">Bản nháp</option>
+                                                <option value="active">Hoạt động</option>
+                                                <option value="inactive">Không hoạt động</option>
+                                                <option value="out_of_stock">Hết hàng</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Shipping Tab -->
+                                <div id="shipping-tab" class="tab-content hidden">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Cân nặng sản phẩm (gram)
+                                            </label>
+                                            <input type="number" name="specs[product_weight]" min="0" placeholder="Nhập cân nặng..." 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                                Kích thước sản phẩm (cm)
+                                            </label>
+                                            <div class="grid grid-cols-3 gap-4">
+                                                <input type="number" name="specs[length]" min="0" placeholder="Dài" 
+                                                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <input type="number" name="specs[width]" min="0" placeholder="Rộng" 
+                                                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                <input type="number" name="specs[height]" min="0" placeholder="Cao" 
+                                                       class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Other Tab -->
+                                <div id="other-tab" class="tab-content hidden">
+                                    <div class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                                            <textarea name="specs[notes]" rows="4" placeholder="Nhập ghi chú..." 
+                                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Bảo hành</label>
+                                            <input type="text" name="specs[warranty]" placeholder="Thời gian bảo hành..." 
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Error Messages -->
+                        <div id="errorContainer" class="bg-red-50 border border-red-200 rounded-lg p-4 mt-4 hidden">
+                            <div class="flex items-center gap-2 text-red-600">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span class="text-sm" id="errorMessage">Vui lòng kiểm tra lại thông tin</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex justify-end gap-4 mt-6">
+                            <button type="button" onclick="resetForm()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                Hủy
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
+                                <i class="fas fa-save mr-2"></i>Lưu sản phẩm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Preview Panel -->
+                <div class="w-80">
+                    <div class="bg-white rounded-lg shadow-sm p-4">
+                        <h3 class="font-medium text-gray-700 mb-4">Xem trước</h3>
+                        <div id="previewContainer">
+                            <div class="text-sm text-gray-600 mb-2" id="previewName">Tên sản phẩm</div>
+                            <div class="text-lg font-semibold text-red-500 mb-2" id="previewPrice">₫0</div>
+                            <div class="text-sm text-gray-500 mb-4" id="previewStock">0 sản phẩm có sẵn</div>
+                            <div class="flex gap-2 mb-4">
+                                <button class="flex-1 bg-teal-500 text-white py-2 rounded-md text-sm">
+                                    <i class="fas fa-comments mr-1"></i>Chat
+                                </button>
+                                <button class="flex-1 bg-orange-500 text-white py-2 rounded-md text-sm">
+                                    <i class="fas fa-shopping-cart mr-1"></i>Mua Ngay
+                                </button>
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                Hình ảnh có tính chất tham khảo, không phải hình ảnh cuối cùng người mua thấy.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImages = [];
+        let coverImageIndex = -1;
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Update tab buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('tab-active');
+                button.classList.add('tab-inactive');
+            });
+            
+            // Activate selected button
+            const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+            activeButton.classList.remove('tab-inactive');
+            activeButton.classList.add('tab-active');
+        }
+
+        function handleImageUpload(input) {
+            const files = Array.from(input.files);
+            const maxImages = 9;
+            
+            if (uploadedImages.length + files.length > maxImages) {
+                alert(`Chỉ được upload tối đa ${maxImages} hình ảnh`);
+                return;
+            }
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImages.push({
+                        file: file,
+                        url: e.target.result
+                    });
+                    updateImageGrid();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateImageGrid() {
+            const grid = document.getElementById('imageGrid');
+            const uploadButton = grid.querySelector('label');
+            
+            // Clear existing images
+            const existingImages = grid.querySelectorAll('.image-item');
+            existingImages.forEach(img => img.remove());
+            
+            // Add uploaded images
+            uploadedImages.forEach((image, index) => {
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'image-item relative border-2 border-gray-300 rounded-lg aspect-square';
+                imageDiv.innerHTML = `
+                    <img src="${image.url}" alt="Product" class="w-full h-full object-cover rounded-lg">
+                    <button type="button" onclick="removeImage(${index})" 
+                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    ${coverImageIndex === index ? '<div class="absolute bottom-0 left-0 right-0 bg-orange-500 text-white text-xs p-1 text-center">Ảnh bìa</div>' : ''}
+                    <button type="button" onclick="setCoverImage(${index})" 
+                            class="absolute top-2 left-2 bg-white text-xs px-2 py-1 rounded shadow">
+                        Đặt làm bìa
+                    </button>
+                `;
+                grid.insertBefore(imageDiv, uploadButton);
+            });
+            
+            // Update count
+            document.getElementById('imageCount').textContent = `(${uploadedImages.length}/9)`;
+        }
+
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            if (coverImageIndex === index) {
+                coverImageIndex = -1;
+                updateCoverImage();
+            } else if (coverImageIndex > index) {
+                coverImageIndex--;
+            }
+            updateImageGrid();
+        }
+
+        function setCoverImage(index) {
+            coverImageIndex = index;
+            updateImageGrid();
+            updateCoverImage();
+        }
+
+        function updateCoverImage() {
+            const container = document.getElementById('coverImageContainer');
+            if (coverImageIndex >= 0 && uploadedImages[coverImageIndex]) {
+                container.innerHTML = `
+                    <img src="${uploadedImages[coverImageIndex].url}" alt="Cover" class="w-20 h-20 object-cover mx-auto rounded">
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="text-gray-400">
+                        <i class="fas fa-upload text-2xl mb-2"></i>
+                        <p class="text-sm">Tải lên hình ảnh 1:1</p>
+                        <p class="text-xs">Ảnh bìa sẽ được hiển thị tại các trang Kết quả tìm kiếm, Gợi ý hôm nay,... Việc sử dụng ảnh bìa đẹp sẽ thu hút thêm lượt truy cập vào sản phẩm của bạn</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateCharCount(element, counterId, maxLength) {
+            const count = element.value.length;
+            document.getElementById(counterId).textContent = `${count}/${maxLength}`;
+            
+            // Update preview
+            if (element.name === 'name') {
+                document.getElementById('previewName').textContent = element.value || 'Tên sản phẩm';
+            } else if (element.name === 'price') {
+                const price = parseInt(element.value) || 0;
+                document.getElementById('previewPrice').textContent = `₫${price.toLocaleString()}`;
+            } else if (element.name === 'stock') {
+                const stock = parseInt(element.value) || 0;
+                document.getElementById('previewStock').textContent = `${stock} sản phẩm có sẵn`;
+            }
+        }
+
+        function addSpecification() {
+            const container = document.getElementById('specifications-container');
+            const specDiv = document.createElement('div');
+            specDiv.className = 'grid grid-cols-2 gap-4';
+            specDiv.innerHTML = `
+                <div>
+                    <input type="text" placeholder="Tên thông số..." 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 spec-key">
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" placeholder="Giá trị..." 
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 spec-value">
+                    <button type="button" onclick="removeSpecification(this)" 
+                            class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(specDiv);
+        }
+
+        function removeSpecification(button) {
+            button.closest('.grid').remove();
+        }
+
+        function resetForm() {
+            if (confirm('Bạn có chắc chắn muốn hủy? Tất cả dữ liệu sẽ bị mất.')) {
+                document.getElementById('productForm').reset();
+                uploadedImages = [];
+                coverImageIndex = -1;
+                updateImageGrid();
+                updateCoverImage();
+                document.getElementById('errorContainer').classList.add('hidden');
+            }
+        }
+
+        // Form submission
+        document.getElementById('productForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            hideError();
+
+            const name = document.getElementById('productName').value.trim();
+            const price = this.elements['price'].value.trim();
+            const stock = this.elements['stock'].value.trim();
+            const description = this.elements['description'].value.trim();
+
+            if (!name || !price || !stock || !description) {
+                showError('Vui lòng điền đầy đủ các trường bắt buộc');
+                return;
+            }
+
+            const formData = new FormData(this);
+
+            // Gửi hình ảnh
+            if (uploadedImages.length > 0) {
+                uploadedImages.forEach(img => {
+                    formData.append('images', img.file);
+                });
+            }
+
+            if (coverImageIndex >= 0) {
+                formData.append('coverIndex', coverImageIndex);
+            }
+
+            // ✅ GOM SPECIFICATIONS
+            const specs = {};
+            document.querySelectorAll('.spec-key').forEach((el, index) => {
+                const key = el.value.trim();
+                const value = document.querySelectorAll('.spec-value')[index].value.trim();
+                if (key) specs[key] = value;
+            });
+
+            // Convert object thành JSON và append vào FormData
+            formData.append('specifications', JSON.stringify(specs));
+            
+            // ✅ ADD LOADING STATE
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Đang xử lý...';
+
+
+            const shopId = '9cd5118a-b3e1-598d-a1a7-e48188993d46';
+
+            if (!shopId) {
+                console.log('Không tìm thấy thông tin shopId. Vui lòng đăng nhập lại.');
+            }
+            formData.append('shopId', shopId);
+
+            // Gửi lên server
+            fetch('/addProduct', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // ✅ CHECK IF RESPONSE IS OK AND CONTENT TYPE
+                console.log('Response status:', response.status);
+                console.log('Response content-type:', response.headers.get('content-type'));
+                
+                if (!response.ok) {
+                    // Handle HTTP error statuses
+                    if (response.status === 401) {
+                        // Redirect to login if unauthorized
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response');
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success response:', data);
+                if (data.success) {
+                    alert('Sản phẩm đã được lưu thành công!');
+                    // Redirect to products page or wherever appropriate
+                    window.location.href = '/';
+                } else {
+                    showError(data.message || 'Đã xảy ra lỗi khi lưu sản phẩm');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                
+                // ✅ BETTER ERROR MESSAGES
+                if (err.message.includes('non-JSON response')) {
+                    showError('Server trả về định dạng không hợp lệ. Vui lòng thử lại.');
+                } else if (err.message.includes('HTTP error')) {
+                    showError('Lỗi kết nối server. Vui lòng kiểm tra lại.');
+                } else {
+                    showError('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+                }
+            })
+            .finally(() => {
+                // ✅ RESET BUTTON STATE
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
+        });
+
+        // ✅ ADD HELPER FUNCTIONS
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage') || createErrorDiv();
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        function createErrorDiv() {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'errorMessage';
+            errorDiv.style.cssText = `
+                background-color: #fee;
+                border: 1px solid #fcc;
+                color: #c33;
+                padding: 10px;
+                border-radius: 4px;
+                margin: 10px 0;
+                display: none;
+            `;
+            
+            // Insert at the top of the form
+            const form = document.getElementById('productForm');
+            form.insertBefore(errorDiv, form.firstChild);
+            
+            return errorDiv;
+        }
+
+
+        // Cập nhật xem trước theo giá và tồn kho
+        document.querySelector('[name="price"]').addEventListener('input', function () {
+            const val = parseInt(this.value) || 0;
+            document.getElementById('previewPrice').textContent = `₫${val.toLocaleString()}`;
+        });
+
+        document.querySelector('[name="stock"]').addEventListener('input', function () {
+            const val = parseInt(this.value) || 0;
+            document.getElementById('previewStock').textContent = `${val} sản phẩm có sẵn`;
+        });
+    </script>
+</body>
+</html>

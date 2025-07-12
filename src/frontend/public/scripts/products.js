@@ -70,7 +70,7 @@ class ProductsManager {
 
     async loadCategories() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}/api/products/categories`);
+            const response = await fetch(`${this.API_BASE_URL}/products/categories`);
             if (!response.ok) throw new Error('Failed to fetch categories');
             
             const data = await response.json();
@@ -110,18 +110,18 @@ class ProductsManager {
                 params.append('sort', '-price');
             }
 
-            const response = await fetch(`${this.API_BASE_URL}/api/products?${params}`);
+            const response = await fetch(`${this.API_BASE_URL}/products?${params}`);
             if (!response.ok) throw new Error('Failed to fetch products');
             
             const data = await response.json();
             this.totalPages = Math.ceil((data.total || 0) / 12);
             
-            this.renderProducts(data.products || []);
+            this.renderProducts(data.data || []);
             this.renderPagination();
             
         } catch (error) {
-            console.error('Error loading products:', error);
-            this.showError('Không thể tải danh sách sản phẩm');
+            console.log('Error loading products:', error);
+            this.showError('Không thể tải danh sách sản phẩm',error);
         } finally {
             this.loading = false;
             this.hideLoading();
@@ -153,7 +153,7 @@ class ProductsManager {
         productContainer.innerHTML = products.map(product => `
             <div class="col l-2-4 m-4 c-6">
                 <div class="home-product-item">
-                    <div class="home-product-item__img" style="background-image: url(${product.image || '/static/no_cart.png'});">
+                    <div class="home-product-item__img" style="background-image: url(${product.images || '/static/no_cart.png'});">
                     </div>
                     <h4 class="home-product-item__name">
                         ${product.name}
@@ -220,7 +220,7 @@ class ProductsManager {
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <li class="pagination-item ${i === this.currentPage ? 'pagination-item--active' : ''}">
-                    <a href="#" class="pagination-item__link" data-page="${i}">${i}</a>
+                    <a href="/products" class="pagination-item__link" data-page="${i}">${i}</a>
                 </li>
             `;
         }
@@ -228,10 +228,10 @@ class ProductsManager {
         if (endPage < this.totalPages) {
             paginationHTML += `
                 <li class="pagination-item">
-                    <a href="#" class="pagination-item__link">...</a>
+                    <a href="/products" class="pagination-item__link">...</a>
                 </li>
                 <li class="pagination-item">
-                    <a href="#" class="pagination-item__link" data-page="${this.totalPages}">${this.totalPages}</a>
+                    <a href="/products" class="pagination-item__link" data-page="${this.totalPages}">${this.totalPages}</a>
                 </li>
             `;
         }

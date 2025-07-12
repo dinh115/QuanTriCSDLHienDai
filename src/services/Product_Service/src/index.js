@@ -36,16 +36,12 @@ app.get('/create', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'products/add.html'));
 });
 
-app.get('/manage', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'products/manage.html'));
-});
-
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
-        service: 'Product Service' 
+        service: 'Product Service'
     });
 });
 
@@ -69,5 +65,4 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 Product service running on http://localhost:${PORT}`);
-    console.log(`📊 Management interface: http://localhost:${PORT}/manage`);
 });
