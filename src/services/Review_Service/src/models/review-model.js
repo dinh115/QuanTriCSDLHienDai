@@ -27,11 +27,11 @@ class ReviewModel {
     //const query = 'SELECT * FROM product_reviews_new WHERE masp = ?';
     //const query = 'SELECT * FROM product_reviews_test WHERE masp = ?';
     const query = 'SELECT * FROM productReviews WHERE masp = ?';
-    const options = { 
+    const options = {
       prepare: true,
       fetchSize: 6 // Number of results per page
     };
-    
+
     if (pageState) {
       options.pageState = pageState;
     }
@@ -100,10 +100,8 @@ class ReviewModel {
     const rating = reviewData.rating;
 
     let query, params;
-    
+
     if (hasImages) {
-      // Include images field when images exist product_reviews_test product_reviews_new
-      //product_reviews_test
       query = `
         INSERT INTO productReviews (
           masp, mauser, username, rating, review_date,
@@ -111,11 +109,11 @@ class ReviewModel {
           images, has_images, has_reply
         )
         VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?, ?, ?)
+        IF NOT EXISTS
       `;
-      
       params = [
         reviewData.masp,
-        reviewData.mauser, 
+        reviewData.mauser,
         reviewData.username,
         reviewData.rating,
         reviewData.phanloai,
@@ -127,7 +125,6 @@ class ReviewModel {
         false
       ];
     } else {
-      // Exclude images field when no images
       query = `
         INSERT INTO productReviews (
           masp, mauser, username, rating, review_date,
@@ -135,11 +132,11 @@ class ReviewModel {
           has_images, has_reply
         )
         VALUES (?, ?, ?, ?, toTimestamp(now()), ?, ?, ?, ?, ?, ?)
+        IF NOT EXISTS
       `;
-      
       params = [
         reviewData.masp,
-        reviewData.mauser, 
+        reviewData.mauser,
         reviewData.username,
         reviewData.rating,
         reviewData.phanloai,
@@ -153,44 +150,51 @@ class ReviewModel {
 
     try {
       const result = await client.execute(query, params, { prepare: true });
-      // 🔼 Add counter updates
-      await ReviewModel.updateReviewSummaryCounters(masp, rating, hasImages);
-      
-      return { success: true };
+
+      // Check the [applied] status
+      if (result.rows && result.rows.length > 0 && result.rows[0]['[applied]'] === true) {
+        // Only update counters if the insertion was applied (i.e., it was a new review)
+        await ReviewModel.updateReviewSummaryCounters(masp, rating, hasImages);
+        return { success: true, message: 'Review created successfully.' };
+      } else {
+        // The review already existed, so do not increment counters
+        return { success: false, message: 'Review with this primary key already exists. No new review created.' };
+      }
     } catch (error) {
       console.error('Database error:', error);
       throw error;
     }
   }
+
   static async updateReviewSummaryCounters(masp, rating, hasImages) {
-  try {
-    // Update total_reviews
-    await client.execute(
-      'UPDATE productReviewsSummary SET total_reviews = total_reviews + 1 WHERE masp = ?',
-      [masp],
-      { prepare: true }
-    );
-
-    // Update rating_X (e.g., rating_5)
-    const ratingColumn = `rating_${rating}`;
-    await client.execute(
-      `UPDATE productReviewsSummary SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
-      [masp],
-      { prepare: true }
-    );
-
-    // Update has_images (only if applicable)
-    if (hasImages) {
+    try {
+      // Update total_reviews
       await client.execute(
-        'UPDATE productReviewsSummary SET has_images = has_images + 1 WHERE masp = ?',
+        'UPDATE productReviewsSummary SET total_reviews = total_reviews + 1 WHERE masp = ?',
         [masp],
         { prepare: true }
       );
+
+      // Update rating_X (e.g., rating_5)
+      const ratingColumn = `rating_${rating}`;
+      await client.execute(
+        `UPDATE productReviewsSummary SET ${ratingColumn} = ${ratingColumn} + 1 WHERE masp = ?`,
+        [masp],
+        { prepare: true }
+      );
+
+      // Update has_images (only if applicable)
+      if (hasImages) {
+        await client.execute(
+          'UPDATE productReviewsSummary SET has_images = has_images + 1 WHERE masp = ?',
+          [masp],
+          { prepare: true }
+        );
+      }
+    } catch (error) {
+      console.error('Error updating review summary counters:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error('Error updating review summary counters:', error);
-    throw error;
-  }
   }
 
   static async addReplyToReview(productId, userId, replyContent) {

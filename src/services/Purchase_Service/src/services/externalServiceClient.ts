@@ -88,6 +88,16 @@ export class ExternalServiceClient {
         }
     }
 
+
+    async removeItemFromCart(cartId: string, productId: string): Promise<void> {
+        try {
+            console.info("REMOVE ITEM WAS CALL: " + cartId + ' ' + productId);
+            await axios.delete(`${this.cartServiceUrl}/carts/${cartId}/items/${productId}`);
+        } catch (error) {
+            console.error('❌ Failed to delete purchased item from cart:', error);
+        }
+    }
+
     async validateProducts(items: Omit<PurchaseItem, 'totalPrice'>[]): Promise<PurchaseItem[]> {
         try {
             const productIds = items.map(item => item.productId);
@@ -98,8 +108,6 @@ export class ExternalServiceClient {
 
             // Trích đúng mảng sản phẩm hợp lệ từ response
             const validProducts: ProductValidationResponse[] = response.data.data.valid;
-
-            console.info("VALID PRODUCTS: " + JSON.stringify(validProducts));
 
             return items.map(item => {
                 const product = validProducts.find(p => p.id === item.productId);
