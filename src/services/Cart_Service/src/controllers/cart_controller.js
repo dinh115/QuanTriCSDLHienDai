@@ -52,8 +52,9 @@ export async function addItemToCart(req, res) {
       existingItem.updatedAt = new Date().toISOString();
     } else {
       const newItem = {
-        productId: productId,
+        id: uuidv4(),
         shopId,
+        productId,
         quantity: parseInt(quantity),
         name,
         price: parseInt(price),
